@@ -2,7 +2,6 @@
 
 <p align="center">
   <strong>A framework for diagnosing where multi-hop reasoning breaks in RAG generators</strong><br />
-  The research benchmark and evaluation code accompanying the paper by Syed Mahbubul Huq, Chris Child, Tillman Weyde, and Pranava Madhyastha.
 </p>
 
 <p align="center">
@@ -261,13 +260,6 @@ multihop-rag-benchmark/
 ## Supplementary material
 
 [**Supplementary Material (PDF)**](Supplementary%20Material.pdf) provides worked multi-hop examples, full experimental details, dataset statistics, PKS calibration and robustness checks, prompts, model settings, human validation, position and context ablations, statistical analyses, live-retrieval validation, chain completion, and cross-domain replication.
-
-## Citation
-
-> **A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators**  
-> Syed Mahbubul Huq, Chris Child, Tillman Weyde, and Pranava Madhyastha  
-> City St George's, University of London, The Alan Turing Institute
-
 When an official publication or preprint URL is available, link it here and add the canonical BibTeX entry (or a `CITATION.cff` file) for easy reuse.
 
 ---
