@@ -11,7 +11,6 @@ The source pool contains **600 selected game samples**:
 
 The selected samples are converted into narrative documents before entity transformation and question–answer generation. Record selected game identifiers and any sampling seed alongside each dataset build to preserve a reproducible source manifest.
 
-The optional [`source_collection/webdiplomacy/`](source_collection/webdiplomacy/README.md) scripts collect a different source and are **not part of the canonical QANTA-derived 300 samples**.
 
 ## Construction stages
 
@@ -80,11 +79,3 @@ python data_generation/context_formation/construct_contexts.py \
 ```
 
 The commands above require appropriate local inputs and API credentials for LLM-assisted screening, validation and multi-hop construction. See each module's README for dependency installation, model selection, and verification. The random selection stage excludes the gold document and candidate distractors containing gold-answer variants, then checks candidate answerability with Gemini.
-
-## Storage and security
-
-Keep generated source files and outputs under `data_generation/work/`, which should be excluded from Git. Do not commit `.env`, credentials, private keys, raw model logs, or restricted source material. Supply provider credentials through environment variables. Follow the QANTA source terms and the GoodStartLabs software licence before redistributing upstream content.
-
-## Methodology and reproducibility
-
-For dataset releases, retain a manifest of source IDs, sampling seed, model identifiers, prompts and generated file hashes. Preserve each stage's inputs and outputs and record the versions of dependencies and hosted models used. The code-only construction modules are independently testable; complete regeneration also requires the source corpus and the external model services.
