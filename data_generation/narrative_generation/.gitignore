@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+.ipynb_checkpoints/
+game_messages/
+*.xlsx
+*.xls
+*key*.json
