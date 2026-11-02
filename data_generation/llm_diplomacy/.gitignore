@@ -1,0 +1,18 @@
+# Local model configurations, simulation data, logs and secrets
+model_configs_*.txt
+results/
+outputs/
+logs/
+*.log
+*.csv
+!manifests/prompt_files_sha256.csv
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.cache/
+.ipynb_checkpoints/
+.DS_Store

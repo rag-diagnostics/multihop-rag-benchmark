@@ -1,0 +1,4 @@
+# Optional server stack - install according to your CUDA/PyTorch environment.
+# Not a reproducible lockfile or complete requirements set.
+vllm
+huggingface_hub
