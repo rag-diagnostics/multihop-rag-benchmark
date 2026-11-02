@@ -1,25 +1,27 @@
+
 <h1 align="center">Multi-Hop RAG Diagnostics</h1>
 
 <p align="center">
-  <strong>A framework for diagnosing where multi-hop reasoning breaks in RAG generators</strong><br />
+  <strong>A framework for diagnosing where multi-hop reasoning breaks in RAG generators</strong>
 </p>
 
 <p align="center">
-  <a href="#overview">Overview</a> 
-  <a href="#how-it-works">Method</a> 
-  <a href="#evidence-controls">Evidence controls</a>
-  <a href="#what-the-paper-finds">Findings</a> 
-  <a href="#quick-start">Quick start</a>
+  <a href="#overview">Overview</a> &nbsp;·&nbsp;
+  <a href="#how-it-works">Method</a> &nbsp;·&nbsp;
+  <a href="#evidence-controls">Evidence controls</a> &nbsp;·&nbsp;
+  <a href="#what-the-paper-finds">Findings</a> &nbsp;·&nbsp;
+  <a href="#quick-start">Quick start</a> &nbsp;·&nbsp;
   <a href="#citation">Citation</a>
 </p>
 
 <p align="center">
-  <strong>600</strong> source narratives &nbsp,&nbsp,|&nbsp,&nbsp,
-  <strong>528</strong> retained instances &nbsp,&nbsp,|&nbsp,&nbsp,
-  <strong>1-4</strong> hops &nbsp,&nbsp,|&nbsp,&nbsp,
-  <strong>11</strong> documents per context &nbsp,&nbsp,|&nbsp,&nbsp,
+  <strong>600</strong> source narratives &nbsp;|&nbsp;
+  <strong>528</strong> retained instances &nbsp;|&nbsp;
+  <strong>1–4</strong> hops &nbsp;|&nbsp;
+  <strong>11</strong> documents per context &nbsp;|&nbsp;
   <strong>12</strong> evaluated models
 </p>
+
 
 ---
 
