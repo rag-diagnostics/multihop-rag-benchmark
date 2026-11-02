@@ -11,7 +11,6 @@
   <a href="#evidence-controls">Evidence controls</a> &nbsp;·&nbsp;
   <a href="#what-the-paper-finds">Findings</a> &nbsp;·&nbsp;
   <a href="#quick-start">Quick start</a> &nbsp;·&nbsp;
-  <a href="#citation">Citation</a>
 </p>
 
 <p align="center">
