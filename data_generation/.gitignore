@@ -1,0 +1,27 @@
+# Keys, tokens and private config
+.env
+.env.*
+!.env.example
+key.json
+key2.json
+*credentials*.json
+*service-account*.json
+
+# Outputs and raw/intermediate datasets
+work/
+**/work/
+**/results/
+**/outputs/
+**/__pycache__/
+*.pyc
+*.log
+process_log.txt
+*_dataset*.xlsx
+*_distractor_audit.json
+rag_benchmark_*.json
+000_new_multihop*.json
+filtered_*multihop*.json
+
+# Notebook and local caches
+.ipynb_checkpoints/
+.venv/
