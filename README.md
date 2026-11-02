@@ -1,172 +1,165 @@
-# A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators
+<p align="center">
+  <img src="assets/readme/hero.svg" alt="Where does multi-hop reasoning break? A fixed 11-document context with gold evidence connected across four reasoning hops." width="100%" />
+</p>
 
-**A controlled benchmark for evaluating evidence-grounded reasoning in retrieval-augmented generation (RAG).**
+<h1 align="center">Multi-Hop RAG Diagnostics</h1>
 
-This repository provides the dataset-construction, parametric knowledge filtering, and generator-evaluation code associated with *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*. The framework tests whether language models can combine evidence across multiple documents when the retrieved context is fixed. By controlling reasoning depth, document position, evidence order, and distractor content, it isolates failures in the **generator** rather than confounding them with retrieval quality.
+<p align="center">
+  <strong>A framework for diagnosing where multi-hop reasoning breaks in RAG generators</strong><br />
+  The research benchmark and evaluation code accompanying the paper by Syed Mahbubul Huq, Chris Child, Tillman Weyde, and Pranava Madhyastha.
+</p>
 
-## Benchmark at a glance
+<p align="center">
+  <a href="#overview">Overview</a> &nbsp;&middot;&nbsp;
+  <a href="#how-it-works">Method</a> &nbsp;&middot;&nbsp;
+  <a href="#evidence-controls">Evidence controls</a> &nbsp;&middot;&nbsp;
+  <a href="#what-the-paper-finds">Findings</a> &nbsp;&middot;&nbsp;
+  <a href="#quick-start">Quick start</a> &nbsp;&middot;&nbsp;
+  <a href="#citation">Citation</a>
+</p>
+
+<p align="center">
+  <strong>600</strong> source narratives &nbsp;&nbsp;|&nbsp;&nbsp;
+  <strong>528</strong> retained instances &nbsp;&nbsp;|&nbsp;&nbsp;
+  <strong>1-4</strong> hops &nbsp;&nbsp;|&nbsp;&nbsp;
+  <strong>11</strong> documents per context &nbsp;&nbsp;|&nbsp;&nbsp;
+  <strong>12</strong> evaluated models
+</p>
+
+---
+
+## Overview
+
+**Can a language model connect the right evidence across multiple documents when retrieval is no longer the problem?**
+
+This repository provides the dataset-construction, parametric knowledge filtering, and generator-evaluation code associated with *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*. The benchmark tests whether language models can combine evidence across documents when the retrieved context is **fixed**.
+
+By controlling reasoning depth, evidence position, ordering, and distractor content, it isolates failures in the **generator** rather than confounding them with retrieval quality. **The primary benchmark is not a live-retrieval evaluation.** A separate retrieval validation is included in the [supplementary material](Supplementary%20Material.pdf).
+
+### Benchmark at a glance
 
 | Property | Design |
-| --- | --- |
-| Source material | 600 Diplomacy-derived source samples: 300 randomly selected LLM-vs-LLM games and 300 samples from the QANTA Diplomacy corpus |
-| Benchmark after PKS filtering | 528 question instances, as reported in the paper |
+| :-- | :-- |
+| Source material | 600 Diplomacy-derived source samples: 300 LLM-vs-LLM game samples and 300 from the QANTA Diplomacy corpus |
+| Retained after PKS filtering | 528 question instances, as reported in the paper |
 | Reasoning complexity | 1, 2, 3, and 4 hops |
-| Context budget | Exactly 11 documents per question |
-| Evidence | 1-4 gold documents, complemented by 10-7 distractor documents |
-| Single-hop configurations | A1 (first), A2 (middle), A3 (last) |
-| Multi-hop configurations | B1 (ordered gold block), B2 (reversed gold block), B3 (shuffled evidence) |
+| Context budget | Exactly **11 documents** per question |
+| Evidence / distractors | 1-4 gold documents plus 10-7 screened distractors |
+| Single-hop conditions | A1 (first), A2 (middle), A3 (last) |
+| Multi-hop conditions | B1 (canonical), B2 (reversed), B3 (randomised) |
 | Expected answers | Short, document-grounded answers of 1-3 words |
-| Evaluation | Deterministic model generation, exact match, semantic equivalence judging, and diagnostic metrics |
+| Scoring | Deterministic generation, exact match, semantic equivalence, and diagnostic metrics |
 
-The primary experiments use **fixed document contexts**, not live retrieval. Every model receives the same documents in the same order for a given question and configuration. Distractors are randomly selected and screened to prevent them from independently revealing the gold answer.
+## How it works
 
-## How the framework works
+<p align="center">
+  <img src="assets/readme/framework.svg" alt="Diagram showing source collection, narrative transformation, entity remapping, PKS filtering, controlled multi-hop composition, and generator evaluation." width="100%" />
+</p>
 
-```text
-300 LLM-vs-LLM Diplomacy games       300 QANTA Diplomacy samples
-              |                                 |
-              +-------------+-------------------+
-                            |
-                  Narrative generation
-                            |
-                   Entity remapping
-                            |
-                 Question-answer generation
-                            |
-              Distractor selection and validation
-                            |
-                 Multi-hop QA construction
-                            |
-              Parametric knowledge filtering
-                            |
-                Fixed 11-document contexts
-               (A1-A3 for n1; B1-B3 for n2-n4)
-                            |
-                   Model inference
-                            |
-              Exact match + semantic judging
-                            |
-                 Diagnostic evaluation
-```
+The source samples are turned into historical-style narratives; named entities and temporal markers are remapped to make surface-level memorisation less useful. Short, span-supported questions are expanded into multi-hop chains by replacing bridge entities with descriptions that must be resolved from additional documents. A calibrated **Parametric Knowledge Score (PKS)** screens out instances with unusually strong question-answer associations under a reference model.
 
-The selected source samples are converted into narratives, transformed to reduce memorisation, and used to create evidence-grounded questions. Recursive bridge-entity expansion yields one- through four-hop questions. A calibrated Parametric Knowledge Score (PKS) then screens for questions that are likely to be answerable from model parameters alone. Finally, the retained questions are paired with controlled document contexts for generator evaluation.
+Finally, each retained question is placed inside a **fixed 11-document context**, with controlled gold-evidence placement and screened distractors, for generator-only evaluation.
 
-## Repository structure
+<details>
+<summary><strong>Learn more: source generation and PKS filtering</strong></summary>
 
-```text
-multihop-rag-benchmark/
-├── data_generation/
-│   ├── llm_diplomacy/             # LLM game simulation and game-message extraction
-│   ├── source_collection/         # Supporting source-collection utilities
-│   ├── narrative_generation/      # Gameplay conversations to narratives
-│   ├── entity_remapping/          # Entity and temporal transformations
-│   ├── qa_generation/             # Document-grounded base QA generation
-│   ├── schema_adapters/           # Workbook and downstream schema alignment
-│   ├── distractor_selection/      # Random, answer-screened distractors
-│   ├── dataset_validation/        # Gold evidence and answer checks
-│   ├── multihop_construction/     # Recursive 1-4 hop QA chains
-│   └── context_formation/         # Eleven-document A/B configurations
-├── parametric_filtering/
-│   ├── baseline_calibration/      # Three-class PKS reference scores
-│   ├── pks_filtering/             # Question-level PKS screening
-│   ├── validation/                # Reference-model and decision checks
-│   └── pks_core.py                # Shared likelihood and classification logic
-├── evaluation/
-│   ├── run_inference.py           # Model inference over fixed contexts
-│   ├── providers.py               # API and local-model backends
-│   ├── prompting.py               # Grounded generation prompts
-│   ├── contexts.py                # Context loading and validation
-│   └── scoring/
-│       ├── matching.py            # Exact-match and answer utilities
-│       ├── judge_answers.py       # Semantic equivalence judging
-│       └── aggregate.py           # Metrics and chain-level summaries
-├── CITATION.cff
-└── README.md
-```
+### Source material and transformation
 
-Detailed guides: **[Dataset generation](data_generation/README.md)** · **[Parametric filtering](parametric_filtering/README.md)** · **[Model evaluation](evaluation/README.md)**.
+- **300 LLM-vs-LLM Diplomacy game samples**, generated using the [GoodStartLabs AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy) environment.
+- **300 QANTA Diplomacy corpus samples**, based on the [Diplomacy dataset](https://sites.google.com/view/qanta/projects/diplomacy) (Peskov et al., 2020).
 
-## Benchmark construction
+Gameplay conversations are transformed into historical-style narratives, followed by stochastic entity and temporal remapping, short question-answer generation, answer-span validation, distractor screening, and recursive multi-hop construction. The `data_generation/source_collection/webdiplomacy/` scripts are supplementary collection utilities; the original-source benchmark partition is based on QANTA Diplomacy.
 
-### 1. Source selection and narrative generation
+See [data generation](data_generation/README.md) for input formats, dependencies, and stage-specific commands.
 
-The source collection combines:
+### Parametric knowledge filtering
 
-- **300 randomly selected LLM-vs-LLM Diplomacy games**, generated using the [GoodStartLabs AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy) environment.
-- **300 gameplay samples from the [QANTA Diplomacy dataset](https://sites.google.com/view/qanta/projects/diplomacy)** (Peskov et al., 2020).
-
-Gameplay conversations are transformed into historical-style narrative documents. The narrative texts undergo stochastic entity and temporal remapping, followed by the generation of short, span-supported question-answer pairs. The dataset-generation modules also perform random distractor selection, gold-answer validation, and recursive multi-hop question construction.
-
-The `data_generation/source_collection/webdiplomacy/` utilities are supplementary collection tools; the benchmark's original-source partition is drawn from **QANTA Diplomacy**.
-
-See [data_generation/README.md](data_generation/README.md) for input formats, dependencies, and the construction commands.
-
-### 2. Parametric knowledge filtering
-
-To reduce reliance on memorised question-answer associations, the framework computes the no-context Parametric Knowledge Score:
+The framework computes a no-context, PMI-inspired association score:
 
 $$
-\mathrm{PKS}(q,a)=L_q+L_a-L_{aq}
+\mathrm{PKS}(q,a) = L_q + L_a - L_{aq}
 $$
 
-where each \(L\) is a summed token-level negative log-likelihood under a fixed reference model. The score is calibrated using three question-answer distributions: **Known & Plausible**, **Unknown & Plausible**, and **Unknown & Implausible**. Each candidate is assigned to the distribution with the smallest absolute Z-score distance; instances in the Known & Plausible class are excluded.
+Here, each $L$ is a summed token-level negative log-likelihood under a fixed reference model. The score is calibrated using three distributions: **Known & Plausible**, **Unknown & Plausible**, and **Unknown & Implausible**. The nearest class is determined by standardised distance; the **Known & Plausible** category is excluded.
 
-The reported experiment filters **600 candidate instances to 528 retained instances**, using Qwen2.5-7B-Instruct as the primary PKS reference model. The scripts also provide reference-model checks.
+In the paper's main run, 600 candidates were filtered to **528 retained instances**, with Qwen2.5-7B-Instruct as the primary PKS reference model. This is a **screening heuristic for parametric answerability**, not a claim that training-data membership can be detected.
 
-The three calibration QA JSON files described in [parametric_filtering/README.md](parametric_filtering/README.md) are required to compute the baseline distributions.
+Three calibration QA JSON files are required to calculate the reference distributions. See [parametric filtering](parametric_filtering/README.md).
 
-### 3. Controlled evidence placement
+</details>
 
-Each evaluated context contains exactly **11 documents**. The number of distractors decreases as the number of gold documents increases.
+## Evidence controls
 
-| Hop depth | Gold documents | Distractors | Evaluated configurations |
-| --- | ---: | ---: | --- |
+<p align="center">
+  <img src="assets/readme/controls.svg" alt="Six rows show A1-A3 single-hop gold-document placements and B1-B3 four-hop evidence ordering under eleven documents." width="100%" />
+</p>
+
+Each evaluation context contains exactly **11 documents**. This holds the document budget constant while increasing hop depth and varying gold-evidence position or ordering. The diagram above is schematic; **B3 shows one example** of randomised placement.
+
+| Hop depth | Gold documents | Distractors | Controlled conditions |
+| :--: | :--: | :--: | :-- |
 | 1 | 1 | 10 | A1: first; A2: middle; A3: last |
-| 2 | 2 | 9 | B1: canonical order; B2: reverse order; B3: shuffled |
-| 3 | 3 | 8 | B1: canonical order; B2: reverse order; B3: shuffled |
-| 4 | 4 | 7 | B1: canonical order; B2: reverse order; B3: shuffled |
+| 2 | 2 | 9 | B1: canonical; B2: reversed; B3: randomised |
+| 3 | 3 | 8 | B1: canonical; B2: reversed; B3: randomised |
+| 4 | 4 | 7 | B1: canonical; B2: reversed; B3: randomised |
 
-The context-formation code records the ordered documents, gold evidence positions, hop depth, configuration, and decomposition metadata. A complete four-hop chain yields **12 controlled evaluation contexts**.
+The context-formation code records document order, gold evidence positions, hop depth, configuration, and intermediate bridge entities. A complete 4-hop chain therefore yields **12 controlled evaluation contexts** (4 depths x 3 configurations).
 
-### 4. Generator evaluation
+## What the paper finds
 
-Models are instructed to answer using only the supplied documents, with a response of one to three words. Predictions are scored using a two-stage procedure:
+The experiments test **12 models** under a constant document budget. The headline result is that **answer accuracy declines as required reasoning hops increase**, even when all necessary gold evidence has been supplied.
 
-1. **Normalised exact match** against the gold answer and its accepted variants.
-2. **Semantic equivalence judging** for predictions that do not match exactly, using Gemini 2.5 Pro.
+| Diagnostic question | Finding in the paper |
+| :-- | :-- |
+| **Does deeper reasoning matter?** | Accuracy decreases from hop 1 to hop 4 across all 12 evaluated models (Figure 2). |
+| **Does evidence placement matter?** | Many models exhibit single-hop sensitivity to middle-positioned evidence. |
+| **Does multi-hop ordering matter?** | Randomised evidence placement is often numerically stronger, but no formation comparison survives Holm correction. |
+| **Where do incorrect answers come from?** | The majority are *distracted* answers; approximately 2.3% are classified as *fabricated*. |
+| **Where does a chain stop?** | The retained intermediate-entity trace identifies cases in which models output a bridge entity rather than the requested final answer. |
 
-The evaluation package supports API-based models, OpenAI-compatible endpoints, and local Transformers inference. It produces model-level and condition-level results, including:
+See the paper's **Figure 2** for the model-by-hop accuracy heatmap and [Supplementary Material](Supplementary%20Material.pdf) for additional analyses and validation.
 
-- **Answer accuracy** across hop depths and evidence configurations.
-- **CMD (Command Following Score):** compliance with the one-to-three-word response requirement.
-- **CONFAB (Confabulation/Non-Answer Rate):** off-task, unusable, and refusal-type responses.
-- **CCS (Chain Completion Score):** cumulative correctness across the same multi-hop chain.
-- **DISTRACTED / FABRICATED:** distinction between incorrect answers found in distractor documents and answers unsupported by those documents.
-- **EAR (Evidence Attribution Rate):** document-citation correctness in a separately prompted citation evaluation.
+## Evaluation and diagnostic metrics
 
-See [evaluation/README.md](evaluation/README.md) for model configuration, judging, and scoring details.
+Models answer using only the supplied documents and are instructed to return **1-3 words**. Normalised exact match is checked first; non-exact predictions are then evaluated for factual semantic equivalence by a judge model (Gemini 2.5 Pro in the reported experiment).
 
-## Installation
+| Metric | What it measures |
+| :-- | :-- |
+| **Accuracy (EM + judge)** | Gold-answer correctness after deterministic and semantic checks |
+| **CMD** | Compliance with the 1-3 word response constraint |
+| **CONFAB** | Off-task, unusable, or refusal/non-answer outputs |
+| **EAR** | Correct attribution of gold supporting evidence in a separately prompted citation evaluation |
+| **CCS** | Correctness at every depth of the same reasoning chain, including shallower hops |
+| **DISTRACTED** | Incorrect answer appearing in a distractor document |
+| **FABRICATED** | Incorrect answer absent from the provided context under the paper's string-matching procedure |
 
-Use **Python 3.10+**. From a clone of this repository:
+Additional error analysis checks whether an incorrect final output matches an **intermediate bridge entity** from the decomposition trace.
+
+## Quick start
+
+**Requirements:** Python 3.10+, stage-specific dependencies, model access or credentials, and input/calibration files. Dataset-generation modules have their own dependencies; consult their [guide](data_generation/README.md). GPU-compatible PyTorch/Transformers builds may be needed for local open-weight inference.
 
 ```bash
+# Clone the repository
+git clone https://github.com/rag-diagnostics/multihop-rag-benchmark.git
+cd multihop-rag-benchmark
+
+# Create an environment
 python -m venv .venv
 source .venv/bin/activate
 
+# Install the PKS and evaluation requirements
 python -m pip install -r parametric_filtering/requirements.txt
 python -m pip install -r evaluation/requirements.txt
 ```
 
-Dataset-generation modules have additional stage-specific dependencies; install them as described in [data_generation/README.md](data_generation/README.md) and its linked guides. For local open-weight model inference, install a PyTorch/Transformers build compatible with the available GPU.
+API-backed steps read credentials from environment variables (for example `DEEPINFRA_TOKEN` and `GOOGLE_API_KEY`). Keep secrets out of the repository; do not commit `.env` files or service tokens.
 
-API-backed steps read credentials from **environment variables** (for example `DEEPINFRA_TOKEN` and `GOOGLE_API_KEY`). Store credentials outside the repository and do not commit `.env` files or model-service tokens.
+### Reproduce the evaluation pipeline
 
-## Running the evaluation workflow
+The commands below start from a constructed multi-hop dataset (`data_generation/work/filtered_multihop.json`). Provide the source corpus, calibration QA files, model checkpoints, and API access separately. Run commands from the repository root.
 
-The commands below start from a completed multi-hop QA dataset (`data_generation/work/filtered_multihop.json`). Run them from the repository root. The input corpus, calibration QA files, model checkpoints, and API access must be provided separately.
-
-**1. Compute the PKS calibration distributions.**
+**1. Calibrate the PKS reference distributions**
 
 ```bash
 python parametric_filtering/baseline_calibration/para11.py \
@@ -175,7 +168,7 @@ python parametric_filtering/baseline_calibration/para11.py \
   --output-dir parametric_filtering/outputs/calibration
 ```
 
-**2. Filter the multi-hop question set.**
+**2. Filter the multi-hop QA set**
 
 ```bash
 python parametric_filtering/pks_filtering/00_para14.py \
@@ -185,9 +178,9 @@ python parametric_filtering/pks_filtering/00_para14.py \
   --output-dir parametric_filtering/outputs/filtering
 ```
 
-The filter writes retained questions to `parametric_filtering/outputs/filtering/000_abl_filtered_unknowns.json`. Inspect `pks_filter_summary.json` for class counts and any failed scores.
+Retained instances are written to `parametric_filtering/outputs/filtering/000_abl_filtered_unknowns.json`; `pks_filter_summary.json` records filtering outcomes.
 
-**3. Freeze the 11-document contexts.**
+**3. Freeze the 11-document contexts**
 
 ```bash
 python data_generation/context_formation/construct_contexts.py \
@@ -196,18 +189,20 @@ python data_generation/context_formation/construct_contexts.py \
   --seed 42
 ```
 
-**4. Validate the model configuration and execute generation.**
+**4. Validate and run model generation**
 
 ```bash
+# Validate configuration without running generation
 python -m evaluation.run_inference \
   --input data_generation/work/contexts_11doc.json \
   --models evaluation/model_config.example.json \
   --output evaluation/work/generations.jsonl \
   --dry-run
+
+# Remove --dry-run from the command above to execute inference.
 ```
 
-
-**5. Judge non-exact answers and aggregate metrics.**
+**5. Judge non-exact answers and aggregate metrics**
 
 ```bash
 python -m evaluation.scoring.judge_answers \
@@ -220,10 +215,65 @@ python -m evaluation.scoring.aggregate \
   --output-dir evaluation/work/summary
 ```
 
+For configuration details, provider support, and output schemas, see the [evaluation guide](evaluation/README.md).
 
+## Repository map
 
-## Citation and attribution
+| Module | Purpose | Documentation |
+| :-- | :-- | :-- |
+| `data_generation/` | Diplomacy generation, narrative transformations, QA, distractor selection, and context construction | [Guide](data_generation/README.md) |
+| `parametric_filtering/` | PKS calibration, three-class filtering, and cross-model checks | [Guide](parametric_filtering/README.md) |
+| `evaluation/` | Generator inference, equivalence judging, and diagnostic scoring | [Guide](evaluation/README.md) |
 
-**Paper:** *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*  
-**Authors:** Syed Mahbubul Huq, Chris Child, Tillman Weyde, and Pranava Madhyastha  
-**Affiliations:** City St George's, University of London; The Alan Turing Institute
+<details>
+<summary><strong>Show the complete repository structure</strong></summary>
+
+```text
+multihop-rag-benchmark/
+|-- data_generation/
+|   |-- llm_diplomacy/              # LLM game simulation and message extraction
+|   |-- source_collection/          # Source-collection utilities
+|   |-- narrative_generation/       # Game messages to narratives
+|   |-- entity_remapping/           # Entity and temporal transformations
+|   |-- qa_generation/              # Base QA generation
+|   |-- schema_adapters/            # Input/output schema alignment
+|   |-- distractor_selection/       # Answer-screened distractors
+|   |-- dataset_validation/         # Gold evidence and answer checks
+|   |-- multihop_construction/      # Recursive 1-4 hop chains
+|   `-- context_formation/          # Controlled A/B document arrangements
+|-- parametric_filtering/
+|   |-- baseline_calibration/       # PKS baseline scores
+|   |-- pks_filtering/              # Question-level screening
+|   |-- validation/                 # Reference-model checks
+|   `-- pks_core.py                 # Shared score/classification logic
+|-- evaluation/
+|   |-- run_inference.py            # Inference across fixed contexts
+|   |-- providers.py                # API and local model backends
+|   |-- prompting.py                # Grounded QA prompts
+|   |-- contexts.py                 # Context loading and checks
+|   `-- scoring/
+|       |-- matching.py             # Exact matching
+|       |-- judge_answers.py        # Semantic evaluation
+|       `-- aggregate.py            # Aggregation and diagnostics
+|-- assets/readme/                  # Visual identity used in this README
+|-- Supplementary Material.pdf
+`-- README.md
+```
+
+</details>
+
+## Supplementary material
+
+[**Supplementary Material (PDF)**](Supplementary%20Material.pdf) provides worked multi-hop examples, full experimental details, dataset statistics, PKS calibration and robustness checks, prompts, model settings, human validation, position and context ablations, statistical analyses, live-retrieval validation, chain completion, and cross-domain replication.
+
+## Citation
+
+> **A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators**  
+> Syed Mahbubul Huq, Chris Child, Tillman Weyde, and Pranava Madhyastha  
+> City St George's, University of London; The Alan Turing Institute
+
+When an official publication or preprint URL is available, link it here and add the canonical BibTeX entry (or a `CITATION.cff` file) for easy reuse.
+
+---
+
+<p align="center"><sub>Built for controlled evidence-grounded reasoning research, not retriever benchmarking.</sub></p>

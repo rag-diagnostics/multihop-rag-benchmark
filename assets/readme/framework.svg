@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="414" viewBox="0 0 1400 414" role="img" aria-labelledby="framework-title framework-desc">
+<title id="framework-title">Benchmark construction and evaluation</title>
+<desc id="framework-desc">Six stages: Diplomacy source collection, narrative transformation, entity remapping, PKS decontamination, controlled multi-hop composition, and generator diagnostics.</desc>
+<rect x="0" y="0" width="1400" height="414" rx="24" fill="#F4F7FB" opacity="1"/>
+<text x="60" y="68" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="33" font-weight="760" text-anchor="start" letter-spacing="-0.6">The benchmark, end to end</text>
+<text x="60" y="102" fill="#5B6F88" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" text-anchor="start">A visual reading of the paper&#x27;s construction pipeline and evaluation stage.</text>
+<rect x="55" y="146" width="197" height="202" rx="16" fill="#FFFFFF" opacity="1" stroke="#D8E4F0" stroke-width="1.2"/>
+<rect x="71" y="162" width="47" height="43" rx="10" fill="#DAF8F2" opacity="1"/>
+<text x="94.5" y="190" fill="#057F78" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="19" font-weight="800" text-anchor="middle">01</text>
+<text x="71" y="240" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">Diplomacy</text>
+<text x="71" y="265" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">sources</text>
+<line x1="71" y1="287" x2="236" y2="287" stroke="#DEE6EF" stroke-width="1" opacity="1"/>
+<text x="71" y="314" fill="#546882" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" text-anchor="start">600 documents</text>
+<text x="71" y="335" fill="#68809A" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" text-anchor="start">300 + 300 sources</text>
+<line x1="260" y1="245" x2="273" y2="245" stroke="#8BA4BC" stroke-width="2.5" opacity="1"/>
+<path d="M 268 239 L 274 245 L 268 251" fill="none" stroke="#8BA4BC" stroke-width="2.5"/>
+<rect x="277" y="146" width="197" height="202" rx="16" fill="#FFFFFF" opacity="1" stroke="#D8E4F0" stroke-width="1.2"/>
+<rect x="293" y="162" width="47" height="43" rx="10" fill="#E9F1FF" opacity="1"/>
+<text x="316.5" y="190" fill="#3264AD" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="19" font-weight="800" text-anchor="middle">02</text>
+<text x="293" y="240" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">Narrative</text>
+<text x="293" y="265" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">transformation</text>
+<line x1="293" y1="287" x2="458" y2="287" stroke="#DEE6EF" stroke-width="1" opacity="1"/>
+<text x="293" y="314" fill="#546882" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" text-anchor="start">Historical-style</text>
+<text x="293" y="335" fill="#68809A" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" text-anchor="start">game narratives</text>
+<line x1="482" y1="245" x2="495" y2="245" stroke="#8BA4BC" stroke-width="2.5" opacity="1"/>
+<path d="M 490 239 L 496 245 L 490 251" fill="none" stroke="#8BA4BC" stroke-width="2.5"/>
+<rect x="499" y="146" width="197" height="202" rx="16" fill="#FFFFFF" opacity="1" stroke="#D8E4F0" stroke-width="1.2"/>
+<rect x="515" y="162" width="47" height="43" rx="10" fill="#EFEAFE" opacity="1"/>
+<text x="538.5" y="190" fill="#6A43B6" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="19" font-weight="800" text-anchor="middle">03</text>
+<text x="515" y="240" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">Entity</text>
+<text x="515" y="265" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">remapping</text>
+<line x1="515" y1="287" x2="680" y2="287" stroke="#DEE6EF" stroke-width="1" opacity="1"/>
+<text x="515" y="314" fill="#546882" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" text-anchor="start">Names, places</text>
+<text x="515" y="335" fill="#68809A" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" text-anchor="start">and temporal markers</text>
+<line x1="704" y1="245" x2="717" y2="245" stroke="#8BA4BC" stroke-width="2.5" opacity="1"/>
+<path d="M 712 239 L 718 245 L 712 251" fill="none" stroke="#8BA4BC" stroke-width="2.5"/>
+<rect x="721" y="146" width="197" height="202" rx="16" fill="#FFFFFF" opacity="1" stroke="#D8E4F0" stroke-width="1.2"/>
+<rect x="737" y="162" width="47" height="43" rx="10" fill="#FFF0E0" opacity="1"/>
+<text x="760.5" y="190" fill="#BB6B24" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="19" font-weight="800" text-anchor="middle">04</text>
+<text x="737" y="240" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">PKS</text>
+<text x="737" y="265" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">filtering</text>
+<line x1="737" y1="287" x2="902" y2="287" stroke="#DEE6EF" stroke-width="1" opacity="1"/>
+<text x="737" y="314" fill="#546882" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" text-anchor="start">Three-class score</text>
+<text x="737" y="335" fill="#68809A" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" text-anchor="start">528 retained QA</text>
+<line x1="926" y1="245" x2="939" y2="245" stroke="#8BA4BC" stroke-width="2.5" opacity="1"/>
+<path d="M 934 239 L 940 245 L 934 251" fill="none" stroke="#8BA4BC" stroke-width="2.5"/>
+<rect x="943" y="146" width="197" height="202" rx="16" fill="#FFFFFF" opacity="1" stroke="#D8E4F0" stroke-width="1.2"/>
+<rect x="959" y="162" width="47" height="43" rx="10" fill="#DDF5F3" opacity="1"/>
+<text x="982.5" y="190" fill="#177C7E" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="19" font-weight="800" text-anchor="middle">05</text>
+<text x="959" y="240" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">Controlled</text>
+<text x="959" y="265" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">composition</text>
+<line x1="959" y1="287" x2="1124" y2="287" stroke="#DEE6EF" stroke-width="1" opacity="1"/>
+<text x="959" y="314" fill="#546882" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" text-anchor="start">1-4 hops</text>
+<text x="959" y="335" fill="#68809A" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" text-anchor="start">11-document contexts</text>
+<line x1="1148" y1="245" x2="1161" y2="245" stroke="#8BA4BC" stroke-width="2.5" opacity="1"/>
+<path d="M 1156 239 L 1162 245 L 1156 251" fill="none" stroke="#8BA4BC" stroke-width="2.5"/>
+<rect x="1165" y="146" width="197" height="202" rx="16" fill="#FFFFFF" opacity="1" stroke="#D8E4F0" stroke-width="1.2"/>
+<rect x="1181" y="162" width="47" height="43" rx="10" fill="#E7EFFF" opacity="1"/>
+<text x="1204.5" y="190" fill="#3A619B" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="19" font-weight="800" text-anchor="middle">06</text>
+<text x="1181" y="240" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">Generator</text>
+<text x="1181" y="265" fill="#172238" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="22" font-weight="730" text-anchor="start">diagnostics</text>
+<line x1="1181" y1="287" x2="1346" y2="287" stroke="#DEE6EF" stroke-width="1" opacity="1"/>
+<text x="1181" y="314" fill="#546882" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" text-anchor="start">EM + semantic</text>
+<text x="1181" y="335" fill="#68809A" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" text-anchor="start">and failure analysis</text>
+<text x="58" y="384" fill="#5F7187" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" text-anchor="start">Construction focuses on the generator, with retrieval excluded from the primary controlled test.</text>
+</svg>

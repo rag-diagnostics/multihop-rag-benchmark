@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="500" viewBox="0 0 1400 500" role="img" aria-labelledby="hero-title hero-desc">
+<title id="hero-title">Where does multi-hop reasoning break?</title>
+<desc id="hero-desc">A visual interpretation of a four-hop chain embedded in an eleven-document fixed context, with four gold passages among distractors.</desc>
+<defs>
+  <linearGradient id="base" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0C1527"/><stop offset="1" stop-color="#142841"/></linearGradient>
+  <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#67F6DF"/><stop offset="1" stop-color="#1BAFBC"/></linearGradient>
+  <radialGradient id="halo" cx="50%" cy="50%" r="70%"><stop stop-color="#255B7F" stop-opacity=".48"/><stop offset="1" stop-color="#255B7F" stop-opacity="0"/></radialGradient>
+  <pattern id="dotgrid" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#5D7A9B" opacity=".25"/></pattern>
+</defs>
+<rect x="0" y="0" width="1400" height="500" rx="0" fill="url(#base)" opacity="1"/>
+<rect x="0" y="0" width="1400" height="500" rx="0" fill="url(#dotgrid)" opacity="1"/>
+<ellipse cx="1240" cy="210" rx="390" ry="320" fill="url(#halo)"/>
+<rect x="72" y="53" width="370" height="34" rx="17" fill="#152E43" opacity="1" stroke="#327D8A" stroke-width="1"/>
+<text x="90" y="76" fill="#91EBD9" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" text-anchor="start" letter-spacing="1.2">RAG DIAGNOSTICS  /  RESEARCH BENCHMARK</text>
+<text x="69" y="159" fill="#FFFFFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="56" font-weight="790" text-anchor="start" letter-spacing="-1.8">Where does multi-hop</text>
+<text x="69" y="234" fill="#FFFFFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="70" font-weight="790" text-anchor="start" letter-spacing="-2.6">reasoning break?</text>
+<text x="73" y="297" fill="#B8CBDA" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start">A controlled, re-instantiable benchmark for</text>
+<text x="73" y="326" fill="#B8CBDA" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" text-anchor="start">evidence-grounded reasoning in RAG generators.</text>
+<line x1="72" y1="368" x2="735" y2="368" stroke="#35536B" stroke-width="1" opacity="1"/>
+<text x="73" y="408" fill="#36DDC4" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="29" font-weight="750" text-anchor="start">600</text>
+<text x="73" y="432" fill="#B1C4D5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start">source narratives</text>
+<text x="242" y="408" fill="#FFFFFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="29" font-weight="750" text-anchor="start">528</text>
+<text x="242" y="432" fill="#B1C4D5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start">retained instances</text>
+<text x="411" y="408" fill="#36DDC4" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="29" font-weight="750" text-anchor="start">1-4</text>
+<text x="411" y="432" fill="#B1C4D5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start">hops</text>
+<text x="580" y="408" fill="#FFFFFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="29" font-weight="750" text-anchor="start">11</text>
+<text x="580" y="432" fill="#B1C4D5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start">docs / context</text>
+<rect x="808" y="86" width="540" height="330" rx="24" fill="#111F34" opacity="1" stroke="#38536A" stroke-width="1.5"/>
+<text x="838" y="126" fill="#A9C1D3" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" text-anchor="start" letter-spacing="2">FIXED CONTEXT</text>
+<text x="1320" y="126" fill="#95F0DF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="650" text-anchor="end">n = 4</text>
+<text x="838" y="152" fill="#FFFFFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="520" text-anchor="start">Four gold passages. Seven distractors.</text>
+<rect x="836" y="184" width="34" height="65" rx="7" fill="#2F4059" opacity="1" stroke="#435772" stroke-width="1"/>
+<line x1="845" y1="201" x2="862" y2="201" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="845" y1="209" x2="858" y2="209" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="845" y1="217" x2="861" y2="217" stroke="#73849A" stroke-width="2" opacity="1"/>
+<rect x="881" y="184" width="34" height="65" rx="7" fill="url(#tile)" opacity="1" stroke="#7CF6E4" stroke-width="1"/>
+<text x="898" y="221" fill="#101A2D" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12" font-weight="750" text-anchor="middle">G1</text>
+<rect x="926" y="184" width="34" height="65" rx="7" fill="#2F4059" opacity="1" stroke="#435772" stroke-width="1"/>
+<line x1="935" y1="201" x2="952" y2="201" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="935" y1="209" x2="948" y2="209" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="935" y1="217" x2="951" y2="217" stroke="#73849A" stroke-width="2" opacity="1"/>
+<rect x="971" y="184" width="34" height="65" rx="7" fill="#2F4059" opacity="1" stroke="#435772" stroke-width="1"/>
+<line x1="980" y1="201" x2="997" y2="201" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="980" y1="209" x2="993" y2="209" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="980" y1="217" x2="996" y2="217" stroke="#73849A" stroke-width="2" opacity="1"/>
+<rect x="1016" y="184" width="34" height="65" rx="7" fill="url(#tile)" opacity="1" stroke="#7CF6E4" stroke-width="1"/>
+<text x="1033" y="221" fill="#101A2D" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12" font-weight="750" text-anchor="middle">G2</text>
+<rect x="1061" y="184" width="34" height="65" rx="7" fill="#2F4059" opacity="1" stroke="#435772" stroke-width="1"/>
+<line x1="1070" y1="201" x2="1087" y2="201" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="1070" y1="209" x2="1083" y2="209" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="1070" y1="217" x2="1086" y2="217" stroke="#73849A" stroke-width="2" opacity="1"/>
+<rect x="1106" y="184" width="34" height="65" rx="7" fill="#2F4059" opacity="1" stroke="#435772" stroke-width="1"/>
+<line x1="1115" y1="201" x2="1132" y2="201" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="1115" y1="209" x2="1128" y2="209" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="1115" y1="217" x2="1131" y2="217" stroke="#73849A" stroke-width="2" opacity="1"/>
+<rect x="1151" y="184" width="34" height="65" rx="7" fill="url(#tile)" opacity="1" stroke="#7CF6E4" stroke-width="1"/>
+<text x="1168" y="221" fill="#101A2D" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12" font-weight="750" text-anchor="middle">G3</text>
+<rect x="1196" y="184" width="34" height="65" rx="7" fill="#2F4059" opacity="1" stroke="#435772" stroke-width="1"/>
+<line x1="1205" y1="201" x2="1222" y2="201" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="1205" y1="209" x2="1218" y2="209" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="1205" y1="217" x2="1221" y2="217" stroke="#73849A" stroke-width="2" opacity="1"/>
+<rect x="1241" y="184" width="34" height="65" rx="7" fill="url(#tile)" opacity="1" stroke="#7CF6E4" stroke-width="1"/>
+<text x="1258" y="221" fill="#101A2D" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12" font-weight="750" text-anchor="middle">G4</text>
+<rect x="1286" y="184" width="34" height="65" rx="7" fill="#2F4059" opacity="1" stroke="#435772" stroke-width="1"/>
+<line x1="1295" y1="201" x2="1312" y2="201" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="1295" y1="209" x2="1308" y2="209" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="1295" y1="217" x2="1311" y2="217" stroke="#73849A" stroke-width="2" opacity="1"/>
+<line x1="898" y1="250" x2="898" y2="288" stroke="#65D9CB" stroke-width="1.6" opacity="0.75"/>
+<circle cx="898" cy="301" r="15" fill="#23344B" stroke="#68E8D7" stroke-width="2"/>
+<text x="898" y="306" fill="#B7FFF1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="750" text-anchor="middle">1</text>
+<line x1="1033" y1="250" x2="1033" y2="288" stroke="#65D9CB" stroke-width="1.6" opacity="0.75"/>
+<circle cx="1033" cy="301" r="15" fill="#23344B" stroke="#68E8D7" stroke-width="2"/>
+<text x="1033" y="306" fill="#B7FFF1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="750" text-anchor="middle">2</text>
+<line x1="1168" y1="250" x2="1168" y2="288" stroke="#65D9CB" stroke-width="1.6" opacity="0.75"/>
+<circle cx="1168" cy="301" r="15" fill="#23344B" stroke="#68E8D7" stroke-width="2"/>
+<text x="1168" y="306" fill="#B7FFF1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="750" text-anchor="middle">3</text>
+<line x1="1258" y1="250" x2="1258" y2="288" stroke="#65D9CB" stroke-width="1.6" opacity="0.75"/>
+<circle cx="1258" cy="301" r="15" fill="#23344B" stroke="#68E8D7" stroke-width="2"/>
+<text x="1258" y="306" fill="#B7FFF1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="750" text-anchor="middle">4</text>
+<line x1="916" y1="301" x2="1013" y2="301" stroke="#91B4D0" stroke-width="2" opacity="1"/>
+<path d="M 1007 296 L 1013 301 L 1007 306" fill="none" stroke="#91B4D0" stroke-width="2"/>
+<line x1="1051" y1="301" x2="1148" y2="301" stroke="#91B4D0" stroke-width="2" opacity="1"/>
+<path d="M 1142 296 L 1148 301 L 1142 306" fill="none" stroke="#91B4D0" stroke-width="2"/>
+<line x1="1186" y1="301" x2="1238" y2="301" stroke="#91B4D0" stroke-width="2" opacity="1"/>
+<path d="M 1232 296 L 1238 301 L 1232 306" fill="none" stroke="#91B4D0" stroke-width="2"/>
+<text x="838" y="351" fill="#7BE6D7" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="start" letter-spacing="0.8">GOLD EVIDENCE</text>
+<text x="1045" y="351" fill="#D8D8FF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="start" letter-spacing="0.8">BRIDGE ENTITIES</text>
+<text x="1315" y="351" fill="#FFFFFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="end" letter-spacing="0.8">ANSWER</text>
+<line x1="837" y1="377" x2="1320" y2="377" stroke="#324A61" stroke-width="1" opacity="1"/>
+<rect x="840" y="389" width="14" height="14" rx="3" fill="#2F4059" opacity="1"/>
+<text x="862" y="401" fill="#A7BAC9" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start">distractor</text>
+<rect x="1028" y="389" width="14" height="14" rx="3" fill="url(#tile)" opacity="1"/>
+<text x="1050" y="401" fill="#A7BAC9" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" text-anchor="start">gold document</text>
+</svg>
