@@ -6,11 +6,11 @@
 </p>
 
 <p align="center">
-  <a href="#overview">Overview</a> &nbsp,&middot,&nbsp,
-  <a href="#how-it-works">Method</a> &nbsp,&middot,&nbsp,
-  <a href="#evidence-controls">Evidence controls</a> &nbsp,&middot,&nbsp,
-  <a href="#what-the-paper-finds">Findings</a> &nbsp,&middot,&nbsp,
-  <a href="#quick-start">Quick start</a> &nbsp,&middot,&nbsp,
+  <a href="#overview">Overview</a> 
+  <a href="#how-it-works">Method</a> 
+  <a href="#evidence-controls">Evidence controls</a>
+  <a href="#what-the-paper-finds">Findings</a> 
+  <a href="#quick-start">Quick start</a>
   <a href="#citation">Citation</a>
 </p>
 
