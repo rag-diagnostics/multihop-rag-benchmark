@@ -49,7 +49,7 @@ The **PKS-filtered benchmark (528 question chains)** is available as a downloada
 
 **[Download the 528-instance benchmark from Google Drive](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing)**
 
-The file contains each chain's `original_question`, gold `answer`, reasoning `decomposition`, and the `hops` (`n1`-`n4`) with gold documents and two stored distractor pools (`relevant` and `irrelevant`). The benchmark is **already generated and PKS-filtered**. You can evaluate it directly without rerunning narrative generation, multi-hop construction, or PKS calibration.
+The file contains each chain's `original_question`, gold `answer`, reasoning `decomposition`, and the `hops` (`n1`-`n4`) with gold documents. The benchmark is **already generated and PKS-filtered**. You can evaluate it directly without rerunning narrative generation, multi-hop construction, or PKS calibration.
 
 Download the JSON and save it as `data_generation/work/benchmark_528.json`. The [`prepare_released_dataset.py`](data_generation/context_formation/prepare_released_dataset.py) adapter then converts the stored document pools into the evaluator's fixed 11-document contexts. See [Quick start](#quick-start) for the tested interface and commands. The JSON is hosted separately from the source-code repository.
 
@@ -168,7 +168,7 @@ python data_generation/context_formation/prepare_released_dataset.py \
   --check-only
 ```
 
-The source JSON contains both `relevant` and `irrelevant` distractor pools. The examples below use `irrelevant`; select `relevant` and keep the outputs separate when running that condition. The adapter does **not** edit the downloaded file, generate new questions, or rerun PKS filtering.
+The adapter does **not** edit the downloaded file, generate new questions, or rerun PKS filtering.
 
 **2. Start with a two-chain trial.** Convert just two chains (24 fixed-context questions) and check the evaluation setup without calling any model:
 
