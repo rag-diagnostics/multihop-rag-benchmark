@@ -219,6 +219,13 @@ python -m evaluation.scoring.aggregate \
   --output-dir evaluation/work/summary
 ```
 
+## Supplementary Material
+
+The [Supplementary Material (PDF)](./Supplementary%20Material.pdf) provides additional methodological details, experimental results, and validation evidence accompanying the paper.
+
+It includes dataset statistics, worked examples of multi-hop question construction, human validation protocols and agreement measures, Parametric Knowledge Score (PKS) calibration and robustness checks, and the prompts and model configurations used throughout the framework.
+
+Further experiments examine evidence positioning, context sensitivity, error attribution, chain completion, retrieval validation, statistical significance, and cross-domain generalisation. These materials complement the dataset-generation, parametric-filtering, and evaluation implementations provided in this repository.
 
 
 ## Citation and attribution
