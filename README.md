@@ -285,14 +285,5 @@ multihop-rag-benchmark/
 
 [**Supplementary Material (PDF)**](Supplementary%20Material.pdf) provides worked multi-hop examples, dataset statistics, PKS calibration and robustness checks, full prompts and model settings, human validation, statistical analyses, live-retrieval validation, chain completion, and cross-domain replication. It also documents supplementary experiments that are separate from the core dataset-generation and evaluation code.
 
-## Citation
-
-If you use this benchmark or its code in research, please cite the accompanying manuscript:
-
-**Syed Mahbubul Huq, Chris Child, Tillman Weyde, and Pranava Madhyastha.** *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators.*
-
-When reusing source gameplay data or simulation code, also follow the citation and licensing terms of [QANTA Diplomacy](https://sites.google.com/view/qanta/projects/diplomacy) and [GoodStartLabs AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy).
-
----
 
 <p align="center"><sub>Built for controlled evidence-grounded reasoning research, not retriever benchmarking.</sub></p>
