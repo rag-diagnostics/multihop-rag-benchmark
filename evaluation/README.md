@@ -106,4 +106,4 @@ python -m evaluation.scoring.aggregate \
   --output-dir evaluation/work/citation_summary
 ```
 
-The citation probe requests a two-line `Answer` and `Document` output. EAR here measures whether the cited integer document number is one of the gold document positions; no substring matching is applied to document numbers. For a multi-hop chain any required gold document is accepted as supporting evidence. The `00_new_metric3*.py` scripts are the source for this supplementary task.
+The citation probe requests a two-line `Answer` and `Document` output. EAR here measures whether the cited integer document number is one of the gold document positions; no substring matching is applied to document numbers. For a multi-hop chain any required gold document is accepted as supporting evidence. 
