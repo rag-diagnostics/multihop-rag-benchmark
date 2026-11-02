@@ -25,17 +25,7 @@ Parametric-answerability screening (paper §3.4), generator evaluation (paper §
 
 Start with the [dataset-construction guide](data_generation/README.md). Each module has its own README specifying inputs, dependencies, configuration and outputs. GPU-backed game simulation uses the upstream [GoodStartLabs AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy) engine; Gemini-powered construction stages use credentials supplied through environment variables.
 
-For a local code check, run the offline tests from the repository root:
 
-```bash
-python -m unittest discover -s data_generation/tests -v
-python -m unittest discover -s data_generation/context_formation/tests -v
-python -m unittest discover -s data_generation/qa_generation/tests -v
-python -m unittest discover -s data_generation/llm_diplomacy/game_log_extraction/tests -v
-python -m unittest discover -s data_generation/source_collection/webdiplomacy/tests -v
-```
-
-The tests exercise selected components using synthetic inputs and do not require paid API calls. Full dataset construction requires the source material, models, and resources described in the module guides.
 
 ## Source attribution
 
