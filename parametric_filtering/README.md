@@ -139,10 +139,3 @@ python parametric_filtering/validation/para13.py \
 
 Each reference model uses its own score distribution; Qwen's scores can be reused from Step 1. This optional script compares calibration distributions, not full instance-level filter agreement.
 
-## Test
-
-```bash
-python -m unittest discover -s parametric_filtering/tests -v
-```
-
-The tests cover PKS arithmetic, baseline statistics, Z-score classification, question grouping, the retained/removed decision rule, fail-safe handling and verification. They do not download models or require a GPU.
