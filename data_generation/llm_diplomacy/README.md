@@ -1,6 +1,5 @@
 # LLM-played Diplomacy: game-generation code and reproducibility notes
 
-**Status:** Code-first reconstruction from the archived `llm_dip.zip`; **not** a complete end-to-end benchmark-data reproduction. Generated games and derived datasets are deliberately excluded from this directory.
 
 This subproject documents the **LLM-vs-LLM Diplomacy game-simulation stage** used as a source for part of the multi-hop RAG benchmark described in *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*.
 
@@ -26,10 +25,7 @@ This subproject documents the **LLM-vs-LLM Diplomacy game-simulation stage** use
 
 ## What the archived simulation did
 
-The source includes local, OpenAI-compatible vLLM endpoints for two open-weight models:
-
-- `meta-llama/Llama-3.1-8B-Instruct` on local port 8000.
-- `Qwen/Qwen2.5-7B-Instruct` on local port 8001.
+The source includes local, OpenAI-compatible vLLM endpoints for two open-weight models.
 
 Model assignments were sampled across the seven Diplomacy powers (Austria, England, France, Germany, Italy, Russia, Turkey). The upstream `lm_game.py` performed the simulation and wrote per-game logs and JSONs to `results/game_###/`. The historical scripts used **2 negotiation rounds**, and the most relevant archived batch ran with `--max_year 1903 --max_tokens 100` (a setting associated with order extraction failures in the saved logs).
 
@@ -53,10 +49,6 @@ python scripts/run_games.py \
   --dry-run
 ```
 
-Running a real game requires locally running model servers, upstream environment dependencies, and the licensing review above. `--max-tokens` defaults to **2048 in our wrapper**, intentionally differing from the historical **100** to avoid repeating a known truncation-sensitive configuration. It has **not** been GPU-tested.
+## LLM Diplomacy game generation
 
-## What this DOES NOT reproduce
-
-The supplied two folders do not establish the script that converted game JSONs into **300 standalone narratives with Gemini 2.5 Pro**, nor the logic selecting those 300 cases. The separate 300 gameplay-log narratives, entity remapping, QA creation, filtering and benchmark evaluation are also outside this subproject. Those steps must be documented separately once their scripts are located.
-
-**Resource-track note:** You can keep raw simulation files out of GitHub. However, the ECIR resource paper says reviewers should be able to access and use the resource. A code-only repository is not automatically equivalent to an accessible benchmark; consider a separate licensed, documented dataset release or reviewer-accessible archive once rights are resolved.
+Code, setup requirements, prompt provenance, and API instructions for the LLM-played Diplomacy source-data stage are documented in [`data_generation/llm_diplomacy/`](data_generation/llm_diplomacy/README.md).
