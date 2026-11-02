@@ -27,9 +27,7 @@
 
 ## Overview
 
-This repository provides the dataset-construction, parametric knowledge filtering, and generator-evaluation code associated with *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*. The benchmark tests whether language models can combine evidence across documents when the retrieved context is fixed.
-
-By controlling reasoning depth, evidence position, ordering, and distractor content, it isolates failures in the **generator** rather than confounding them with retrieval quality. **The primary benchmark is not a live-retrieval evaluation.** A separate retrieval validation is included in the [supplementary material](Supplementary%20Material.pdf).
+This repository provides the dataset-construction, parametric knowledge filtering, and generator-evaluation code associated with *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*.
 
 ### Benchmark at a glance
 
