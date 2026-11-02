@@ -1,0 +1,27 @@
+{
+  "models": {
+    "qwen3-next-80b": {
+      "provider": "openai_compatible",
+      "model_id": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "api_key_env": "DEEPINFRA_TOKEN"
+    },
+    "llama-3-1-8b": {
+      "provider": "openai_compatible",
+      "model_id": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "api_key_env": "DEEPINFRA_TOKEN"
+    },
+    "gemma-4-31b": {
+      "provider": "openai_compatible",
+      "model_id": "google/gemma-4-31B-it",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "api_key_env": "DEEPINFRA_TOKEN"
+    },
+    "gemini-2-5-flash-lite": {
+      "provider": "google_genai",
+      "model_id": "gemini-2.5-flash-lite",
+      "api_key_env": "GOOGLE_API_KEY"
+    }
+  }
+}
