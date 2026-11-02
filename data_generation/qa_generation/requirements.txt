@@ -1,0 +1,5 @@
+pandas
+openpyxl
+google-genai
+tqdm
+# Optional notebook support: ipykernel

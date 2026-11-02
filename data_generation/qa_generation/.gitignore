@@ -1,0 +1,19 @@
+# Credentials and local environments
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
+
+# Source workbooks, generated answers, logs (do not commit)
+*.xlsx
+*.xls
+*.csv
+gemini_out_6_004/
+gemini_out*/
+deepseek_out_6_004/
+deepseek_out*/
+*.log
