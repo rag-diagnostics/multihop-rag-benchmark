@@ -43,10 +43,9 @@ Model inference requires the reference model checkpoint. The main PKS reference 
 
 ## Required inputs
 
-The three calibration files must be JSON arrays of objects with string `question` and `answer` fields:
+The three calibration files are:
 
 ```text
-calibration_data/
   7common_knowledge.json
   7plausible_but_false.json
   7nonsense_knowledge.json
