@@ -36,7 +36,3 @@ The research builds on the QANTA Diplomacy dataset of Peskov et al. (2020) and t
 Syed Mahbubul Huq · Christopher Child · Tillman Weyde · Pranava Madhyastha
 
 City St George's, University of London · The Alan Turing Institute
-
-## Citation
-
-For the project citation and author information, see [`CITATION.cff`](CITATION.cff). Cite the source datasets and game environment when using those components.
