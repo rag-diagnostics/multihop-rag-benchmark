@@ -1,0 +1,13 @@
+# Intermediate scoring and benchmark artifacts
+outputs/
+calibration_data/
+work/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.env
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/

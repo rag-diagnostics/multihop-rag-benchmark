@@ -1,0 +1,4 @@
+# Install a PyTorch build appropriate for your system/GPU before installation.
+torch>=2.3,<3
+transformers>=4.48,<5
+accelerate>=1.0,<2
