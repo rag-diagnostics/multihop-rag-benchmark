@@ -9,7 +9,7 @@ This repository provides the dataset-construction, parametric knowledge filterin
 | Property | Design |
 | --- | --- |
 | Source material | 600 Diplomacy-derived source samples: 300 randomly selected LLM-vs-LLM games and 300 samples from the QANTA Diplomacy corpus |
-| Benchmark after PKS filtering | 528 question instances, as reported in the paper |
+| Benchmark after PKS filtering | 528 question instances |
 | Reasoning complexity | 1, 2, 3, and 4 hops |
 | Context budget | Exactly 11 documents per question |
 | Evidence | 1-4 gold documents, complemented by 10-7 distractor documents |
@@ -80,7 +80,6 @@ multihop-rag-benchmark/
 │       ├── matching.py            # Exact-match and answer utilities
 │       ├── judge_answers.py       # Semantic equivalence judging
 │       └── aggregate.py           # Metrics and chain-level summaries
-├── CITATION.cff
 └── README.md
 ```
 
