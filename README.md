@@ -46,13 +46,11 @@ This repository provides the dataset-construction, parametric knowledge filterin
 | Scoring | Deterministic generation, exact match, semantic equivalence, and diagnostic metrics |
 
 
-## 📥 Download the Benchmark Dataset
+### 📦 Download the Benchmark Dataset
 
-The **528-instance, PKS-filtered benchmark** is publicly available:
-**[📦 Download the complete JSON dataset from Google Drive](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing)**. 
-https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing
+🤗 **[Download the 528-Instance Benchmark on Hugging Face](https://huggingface.co/datasets/syedhuq/multihop-rag-benchmark)** · 🔗 **[Dataset DOI: 10.57967/hf/11390](https://doi.org/10.57967/hf/11392)** · ☁️ [Google Drive Mirror](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing)
 
-The file contains each chain's `original_question`, gold `answer`, reasoning `decomposition`, and the `hops` (`n1`-`n4`) with gold documents and two stored distractor pools (`relevant` and `irrelevant`). The benchmark is **already generated and PKS-filtered**. You can evaluate it directly without rerunning narrative generation, multi-hop construction, or PKS calibration.
+The publicly released benchmark contains **528 PKS-filtered instances**, covering 1–4 reasoning hops, gold evidence, distractor documents, and reasoning decompositions. Download the JSON and follow the [Quick Start](#quick-start) to generate answers and evaluate models directly, without regenerating the dataset or rerunning PKS.
 
 Save the downloaded file as `data/benchmark_528.json`.
 
@@ -264,6 +262,11 @@ multihop-rag-benchmark/
 
 When reusing source gameplay data or simulation code, also follow the citation and licensing terms of [QANTA Diplomacy](https://sites.google.com/view/qanta/projects/diplomacy) and [GoodStartLabs AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy).
 
+## 📜 License & Citation
+
+The dataset is released under **[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**, subject to applicable third-party rights. Researchers using this resource are requested to cite *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators* and the **[dataset DOI](https://doi.org/10.57967/hf/11392)**.
+
+If you use our code, dataset, or framework in your research, **please cite our paper**: *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*, and provide appropriate attribution. Underlying sources, including QANTA Diplomacy and GoodStartLabs AI Diplomacy, retain their respective licensing and attribution requirements.
 ---
 
 <p align="center"><sub>Built for controlled evidence-grounded reasoning research, not retriever benchmarking.</sub></p>
