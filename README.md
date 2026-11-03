@@ -106,7 +106,7 @@ Each evaluation context contains exactly **11 documents**. This holds the docume
 
 ## What the paper finds
 
-The experiments test **12 models** under a constant document budget. The headline result is that **answer accuracy declines as required reasoning hops increase**, even when all necessary gold evidence has been supplied.
+The experiments test **12 models** under a constant document budget.
 
 | Diagnostic question | Finding in the paper |
 | :-- | :-- |
@@ -134,7 +134,7 @@ Models answer from the supplied documents in **1-3 words**. Select `legacy_short
 
 ## Quick start
 
-The commands run from the repository root. Use Python 3.10+ and a fresh environment. The game engine has its own environment, it is not needed to evaluate the released dataset.
+The commands run from the repository root. Use Python 3.10+ and a fresh environment. 
 
 ```bash
 git clone https://github.com/rag-diagnostics/multihop-rag-benchmark.git
@@ -145,7 +145,6 @@ python -m pip install -r requirements.txt
 python -m tools.check_environment
 ```
 
-On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1`. Multi-line examples below use Bash continuation characters, on PowerShell paste each command on one line.
 
 ### 1. Download and validate the released dataset
 
