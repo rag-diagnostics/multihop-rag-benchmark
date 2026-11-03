@@ -12,7 +12,7 @@ python -m evaluation.evaluate_dataset \
   --models evaluation/model_config.original_api.example.json \
   --only-model gemini-flash-lite --output-dir runs/test \
   --distractor-family irrelevant --length-policy legacy_word_min \
-  --judge-model gemini-2.5-pro --judge-policy legacy_short \
+  --judge-model gemini-2.5-pro --judge-policy semantic_all \
   --max-tokens 50 --sample-chains 2 --seed 42 \
   --audit-policy report --dry-run
 ```
