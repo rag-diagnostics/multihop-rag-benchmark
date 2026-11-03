@@ -29,7 +29,7 @@
 
 This repository provides the dataset-construction, parametric knowledge filtering, and generator-evaluation code associated with *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*. The benchmark tests whether language models can combine evidence across documents when the retrieved context is fixed.
 
-By controlling reasoning depth, evidence position, ordering, and distractor content, it isolates failures in the **generator** rather than confounding them with retrieval quality. **The primary benchmark is not a live-retrieval evaluation.** A separate retrieval validation is included in the [supplementary material](Supplementary%20Material.pdf).
+
 
 ### Benchmark at a glance
 
@@ -38,7 +38,7 @@ By controlling reasoning depth, evidence position, ordering, and distractor cont
 | Source material | 600 Diplomacy-derived source samples: 300 LLM-vs-LLM game samples and 300 from the QANTA Diplomacy corpus |
 | Retained after PKS filtering | **528 question chains**, each with 1- through 4-hop versions |
 | Reasoning complexity | 1, 2, 3, and 4 hops |
-| Context budget | Exactly **11 documents** per question |
+| Context budget |  **11 documents** per question |
 | Evidence / distractors | 1-4 gold documents plus 10-7 screened distractors |
 | Single-hop conditions | A1 (first), A2 (middle), A3 (last) |
 | Multi-hop conditions | B1 (canonical), B2 (reversed), B3 (randomised) |
@@ -47,7 +47,7 @@ By controlling reasoning depth, evidence position, ordering, and distractor cont
 
 ## Dataset download
 
-The **PKS-filtered benchmark (528 question chains)** is available as a downloadable JSON file:
+The **PKS-filtered benchmark (528 question chains) used in the paper** is available as a downloadable JSON file:
 
 **[Download the 528-instance benchmark from Google Drive](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing)**
 
