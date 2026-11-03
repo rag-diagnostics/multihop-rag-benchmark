@@ -53,9 +53,9 @@ The **PKS-filtered benchmark (528 question chains) used in the paper** is availa
 
 The file contains each chain's `original_question`, gold `answer`, reasoning `decomposition`, and the `hops` (`n1`-`n4`) with gold documents and two stored distractor pools (`relevant` and `irrelevant`). The benchmark is **already generated and PKS-filtered**. You can evaluate it directly without rerunning narrative generation, multi-hop construction, or PKS calibration.
 
-Save the downloaded file as `data/benchmark_528.json`, or use the downloader below. The direct runner reads this JSON, constructs each context in memory, generates answers, judges them, and writes metrics. **No sharding, separate context export, data regeneration, or second PKS filtering pass is required.**
+Save the downloaded file as `data/benchmark_528.json`, or use the downloader below. The direct runner reads this JSON, constructs each context in memory, generates answers, judges them, and writes metrics. 
 
-The downloaded file is immutable input. Structural and lexical checks produce an audit before any paid model calls. They report inconsistent bridge traces and answer spans in distractors; they do not silently rename entities, drop records, or certify semantic validity. See [dataset-quality handling](evaluation/README.md#dataset-quality-handling).
+
 
 ## How it works
 
