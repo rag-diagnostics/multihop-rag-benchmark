@@ -78,7 +78,7 @@ Consider a question that becomes progressively harder as entities are replaced b
 
 This example illustrates how the framework identifies **which intermediate reasoning step a model may have failed to complete**, rather than measuring final-answer accuracy alone.
 
-📖 [Full questions, evidence and analysis — Supplementary Material, Appendix C](Supplementary%20Material.pdf)
+📖 [Full questions, evidence and analysis in Supplementary Material](Supplementary%20Material.pdf)
 
 ## How it works
 
