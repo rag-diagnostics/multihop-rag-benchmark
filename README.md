@@ -269,5 +269,3 @@ The dataset is released under **[CC BY 4.0](https://creativecommons.org/licenses
 If you use our code, dataset, or framework in your research, **please cite our paper**: *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*, and provide appropriate attribution. Underlying sources, including QANTA Diplomacy and GoodStartLabs AI Diplomacy, retain their respective licensing and attribution requirements.
 
 ---
-
-<p align="center"><sub>Built for controlled evidence-grounded reasoning research, not retriever benchmarking.</sub></p>
