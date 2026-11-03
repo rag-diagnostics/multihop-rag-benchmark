@@ -187,7 +187,7 @@ python -m evaluation.evaluate_dataset \
   --only-model gemini-flash-lite \
   --output-dir runs/sample_irrelevant \
   --distractor-family irrelevant --length-policy legacy_word_min \
-  --judge-model gemini-2.5-pro --judge-policy legacy_short \
+  --judge-model gemini-2.5-pro --judge-policy semantic_all \
   --max-tokens 50 --sample-chains 2 --seed 42 \
   --dry-run
 ```
