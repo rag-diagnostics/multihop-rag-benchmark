@@ -78,9 +78,3 @@ DISTRACTED/FABRICATED use normalized, token-boundary phrase presence in distract
 CCS uses the explicitly selected single-hop baseline (default A2), then B1, B2, or B3 consistently at deeper hops of the same chain. It requires all four depths; incomplete chains are reported and final CCS is withheld. This convention must match the experiment being compared.
 
 Citation probing is separate: use `python -m evaluation.run_dataset ... --mode citation --run-tag citation --max-tokens 60` in a new directory. A cited document must equal an integer gold position. Position 1 does not match position 11. EAR is a document-citation check, not verification that every reasoning step was followed. The two-line citation prompt and output budget differ from primary generation.
-
-## Compatibility interfaces
-
-`run_inference.py` and `prepare_released_dataset.py` remain for previously exported context files. They are not needed for the direct workflow. The old sharded export is optional and does not shorten a model's input. The direct workflow is the recommended entry point for the 528-chain JSON.
-
-See [changes](../docs/FIXES.md), [source map](SOURCE_MAP.md), and [verification](../docs/TEST_REPORT.md).
