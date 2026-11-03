@@ -267,6 +267,7 @@ When reusing source gameplay data or simulation code, also follow the citation a
 The dataset is released under **[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**, subject to applicable third-party rights. Researchers using this resource are requested to cite *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators* and the **[dataset DOI](https://doi.org/10.57967/hf/11392)**.
 
 If you use our code, dataset, or framework in your research, **please cite our paper**: *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*, and provide appropriate attribution. Underlying sources, including QANTA Diplomacy and GoodStartLabs AI Diplomacy, retain their respective licensing and attribution requirements.
+
 ---
 
 <p align="center"><sub>Built for controlled evidence-grounded reasoning research, not retriever benchmarking.</sub></p>
