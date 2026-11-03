@@ -183,7 +183,7 @@ python -m evaluation.dataset --input data/benchmark_528.json \
 ```bash
 python -m evaluation.evaluate_dataset \
   --dataset data/benchmark_528.json --expected-chains 528 \
-  --models evaluation/model_config.original_api.example.json \
+  --models evaluation/model_config.example.json \
   --only-model gemini-flash-lite \
   --output-dir runs/sample_irrelevant \
   --distractor-family irrelevant --length-policy legacy_word_min \
