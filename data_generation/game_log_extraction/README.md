@@ -37,5 +37,3 @@ The historical code traverses `phases[].messages[]`, includes only messages whos
 ```text
 FRANCE, Spring 1901 to GERMANY: An example message.
 ```
-
-It intentionally does not export public/global messages, movement orders, or phase summaries. The original year/season interpretation is preserved. If the input folder does not exist, the cleaned script now raises an error instead of silently generating an example game.
