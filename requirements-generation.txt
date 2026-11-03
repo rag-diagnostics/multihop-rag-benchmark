@@ -1,0 +1,8 @@
+-r requirements.txt
+pandas>=2.2,<3
+openpyxl>=3.1,<4
+python-dotenv>=1,<2
+tqdm>=4.66,<5
+spacy>=3.7,<4
+nltk>=3.8,<4
+# spaCy English model and WordNet are installed separately; see BUILD_DATASET.md.

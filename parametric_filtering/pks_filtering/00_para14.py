@@ -16,7 +16,7 @@ from pks_core import (read_json, write_json, load_calibration, load_model_and_to
                       nll_scorer, score_qa, classify_pks, normalized_questions)
 
 
-def filter_items(rows, stats, scorer, on_error="keep"):
+def filter_items(rows, stats, scorer, on_error="error"):
     """Classify each unique base question once and apply its decision to all rows."""
     if on_error not in ("keep", "remove", "error"):
         raise ValueError("on_error must be keep, remove or error")
@@ -35,10 +35,10 @@ def filter_items(rows, stats, scorer, on_error="keep"):
         except Exception as exc:
             if on_error == "error":
                 raise
-            # Default mirrors the original 00_para14.py: a failed score is
-            # assigned nonsense (KEEP), rather than being discarded.
+            # Explicit keep reproduces the original fail-open policy;
+            # the release default raises instead of assigning a class.
             category, score, z_scores = ("nonsense" if on_error == "keep" else "common"), None, None
-            failure = f"{type(exc).__name__}: {exc}"
+            failure = type(exc).__name__
         decisions[q] = {
             "question": q, "answer": a, "pmi_classic": score,
             "category": category, "action": "REMOVE" if category == "common" else "KEEP",
@@ -49,7 +49,14 @@ def filter_items(rows, stats, scorer, on_error="keep"):
     return kept, removed, decisions
 
 
-def run(input_path: Path, model_name: str, calibration_dir: Path, output_dir: Path, device: str, on_error: str):
+def run(input_path: Path, model_name: str, calibration_dir: Path, output_dir: Path, device: str, on_error: str, allow_legacy_calibration: bool = False):
+    summary_path = calibration_dir / "calibration_summary.json"
+    if not summary_path.is_file() and not allow_legacy_calibration:
+        raise ValueError("Missing calibration_summary.json; calibrate first or explicitly allow legacy calibration files")
+    if summary_path.is_file():
+        calibration_model = read_json(summary_path).get("model")
+        if calibration_model != model_name:
+            raise ValueError("Calibration and filtering reference models differ; regenerate calibration with the same model identifier")
     stats = load_calibration(calibration_dir)
     rows = read_json(input_path)
     tokenizer, model = load_model_and_tokenizer(model_name, device)
@@ -81,10 +88,11 @@ def main():
     p.add_argument("--calibration-dir", required=True, type=Path)
     p.add_argument("--output-dir", required=True, type=Path)
     p.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
-    p.add_argument("--on-error", choices=["keep", "remove", "error"], default="keep",
-                   help="Default keep matches original failed-score handling; error is stricter")
+    p.add_argument("--on-error", choices=["keep", "remove", "error"], default="error",
+                   help="Default error stops on scoring failures; keep/remove reproduce explicit alternative policies")
+    p.add_argument("--allow-legacy-calibration", action="store_true", help="Accept old calibration files without a model/checksum manifest; provenance then remains unverified")
     args = p.parse_args()
-    run(args.input, args.model, args.calibration_dir, args.output_dir, args.device, args.on_error)
+    run(args.input, args.model, args.calibration_dir, args.output_dir, args.device, args.on_error, args.allow_legacy_calibration)
 
 
 if __name__ == "__main__":

@@ -16,7 +16,10 @@ import re
 import time
 import unicodedata
 
-import pandas as pd
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from rag_utils.tables import read_records
+from rag_utils.gemini import generate_text
 import requests
 
 DEFAULT_MODEL = "gemini-2.0-flash"  # Original data_check.py judge model.
@@ -72,31 +75,7 @@ Output (either Answer or UNKNOWN):
 
 
 def call_gemini(prompt: str, api_key: str, model: str, retries: int = 3) -> str:
-    """Use an API-key header (never put secrets in URLs or exception output)."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.0, "maxOutputTokens": 30},
-    }
-    headers = {"Content-Type": "application/json", "x-goog-api-key": api_key}
-    for attempt in range(retries):
-        try:
-            response = requests.post(url, headers=headers, json=payload, timeout=45)
-            if response.status_code in {429, 500, 502, 503, 504}:
-                if attempt < retries - 1:
-                    time.sleep(2 ** attempt)
-                    continue
-                raise RuntimeError("Temporary Gemini API failure; last attempt exhausted")
-            if not response.ok:
-                raise RuntimeError(f"Gemini API request failed (HTTP {response.status_code})")
-            result = response.json()
-            return str(result["candidates"][0]["content"]["parts"][0]["text"]).strip()
-        except (requests.RequestException, ValueError, KeyError, IndexError, TypeError) as exc:
-            if attempt < retries - 1:
-                time.sleep(2 ** attempt)
-                continue
-            raise RuntimeError("Gemini response was unavailable or malformed") from None
-    raise RuntimeError("Gemini answerability check did not complete")
+    return generate_text(model, prompt, key=api_key, max_tokens=2048, retries=retries)
 
 
 def check_candidate(question: str, document: str, mode: str, api_key: str | None, model: str) -> tuple[bool, str]:
@@ -132,7 +111,7 @@ def select_for_row(row: dict, all_documents: list[str], count: int,
         return question, None, stats
 
     candidates = []
-    for doc in all_documents:
+    for doc in dict.fromkeys(all_documents):
         if doc == golden:
             continue
         if contains_gold_answer(doc, answer):
@@ -160,6 +139,7 @@ def select_for_row(row: dict, all_documents: list[str], count: int,
     if len(selected) != count:
         return question, None, stats
     return question, {
+        "Serial": row.get("Serial"),
         "golden_answer": answer,
         "golden_document_text": golden,
         "distractors": selected,
@@ -176,7 +156,7 @@ def save_json(obj, location: str) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--input-xlsx", required=True, help="QA workbook with question, answer, Document")
+    ap.add_argument("--input", "--input-xlsx", dest="input_path", required=True, help="QA JSON or XLSX with question, answer, Document")
     ap.add_argument("--output", default="rag_benchmark_clean_new.json")
     ap.add_argument("--audit", default="random_distractor_audit.json")
     ap.add_argument("--count", type=int, default=10, help="10 for 11-document n=1 contexts")
@@ -193,19 +173,14 @@ def main() -> None:
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if args.check_mode == "llm" and not api_key:
         ap.error("GEMINI_API_KEY environment variable is required for --check-mode llm")
-    df = pd.read_excel(args.input_xlsx, dtype=object)
-    needed = {"question", "answer", "Document"}
-    if not needed.issubset(df.columns):
-        ap.error("Input workbook needs columns question, answer, Document")
-    df = df.dropna(subset=["question", "answer", "Document"])
-    rows = df.to_dict(orient="records")
-    if args.limit: rows = rows[:args.limit]
-    q_list = [str(row["question"]).strip() for row in rows]
-    if len(set(q_list)) != len(q_list):
-        ap.error("Duplicate question texts in workbook; cannot safely use question as JSON key")
-    documents = list(dict.fromkeys(str(x).strip() for x in df["Document"] if str(x).strip()))
-    if len(documents) < 11:
-        ap.error("At least 11 distinct documents required in source corpus")
+    rows_all = read_records(args.input_path)
+    if not rows_all or any(not all(isinstance(row.get(k), str) and row[k].strip() for k in ("question", "answer", "Document")) for row in rows_all):
+        ap.error("Every input row needs question, answer and Document")
+    rows = rows_all[:args.limit] if args.limit else rows_all
+    q_list = [r["question"].strip() for r in rows]
+    if len(set(q_list)) != len(q_list): ap.error("Duplicate question texts; fix source identifiers/questions before continuing")
+    documents = list(dict.fromkeys(r["Document"].strip() for r in rows_all))
+    if len(documents) < 11: ap.error("At least 11 distinct documents required")
 
     def process(row):
         return select_for_row(row, documents, args.count, args.seed, args.check_mode, api_key, args.model)

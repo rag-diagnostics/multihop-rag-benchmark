@@ -1,24 +1,11 @@
-# Multi-hop construction and quality filtering
+# Multihop Construction
 
+Reads Document explicitly, requires valid bridge substitution and gold-answer agreement, and performs full-evidence and leave-one-document-out checks. Run filter_multihop on the result before PKS; incomplete chains are rejected.
 
-## Run (uses Gemini API; does not require uploading generated data)
-
-```bash
-export GEMINI_API_KEY="<set-this-locally-not-in-GitHub>"
-python data_generation/multihop_construction/multi_create.py \
-  --input data_generation/work/rag_benchmark_gold_validated_new.json \
-  --global-docs /path/to/updated_modified_final_dataset_6_02.xlsx \
-  --output data_generation/work/000_new_multihop_dataset_final.json \
-  --errors data_generation/work/000_new_multihop_errors.json
-```
-
-
-
-## Remove failed hop chains
-
-Use `filter_multihop.py`
+Run from the repository root:
 
 ```bash
-python -c 'from data_generation.multihop_construction.filter_multihop import filter_json_remove_entries_with_hops_error; filter_json_remove_entries_with_hops_error("data_generation/work/000_new_multihop_dataset_final.json", "data_generation/work/filtered_multihop.json")'
+python -m data_generation.multihop_construction.multi_create --input work/gold.json --global-docs work/documents_qa.json --output work/chains.json --errors work/chain_errors.json
 ```
 
+Use the [complete construction guide](../../docs/BUILD_DATASET.md) for dependencies, model options and stage ordering. The orchestrator `python -m data_generation.run_pipeline` checks the full sequence. JSON is canonical for long text; exporting oversized Excel cells fails explicitly. Existing notebook entry points import the Python implementation. See [the changes](../../docs/FIXES.md) for intentional validation changes and historical-parity boundaries.

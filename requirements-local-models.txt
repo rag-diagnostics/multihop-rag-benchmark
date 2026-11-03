@@ -1,0 +1,4 @@
+# Select a PyTorch build appropriate for your hardware before installing.
+torch>=2.4
+transformers>=4.48,<6
+accelerate>=1,<2

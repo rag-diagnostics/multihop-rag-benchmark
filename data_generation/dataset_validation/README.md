@@ -1,9 +1,11 @@
-# Gold-answer validation
+# Dataset Validation
+
+Checks gold-answer variants, verbatim 1-3-word support and ambiguity. Failures of API or schema are operational failures, not valid judgments.
+
+Run from the repository root:
 
 ```bash
-export GEMINI_API_KEY="<set-this-locally-not-in-GitHub>"
-python data_generation/dataset_validation/validate_gold.py \
-  --input data_generation/work/rag_benchmark_clean_new.json \
-  --output data_generation/work/rag_benchmark_gold_validated_new.json \
-  --errors data_generation/work/gold_validation_errors.json
+python -m data_generation.dataset_validation.validate_gold --input work/base.json --output work/gold.json --errors work/gold_errors.json
 ```
+
+Use the [complete construction guide](../../docs/BUILD_DATASET.md) for dependencies, model options and stage ordering. The orchestrator `python -m data_generation.run_pipeline` checks the full sequence. JSON is canonical for long text; exporting oversized Excel cells fails explicitly. Existing notebook entry points import the Python implementation. See [the changes](../../docs/FIXES.md) for intentional validation changes and historical-parity boundaries.

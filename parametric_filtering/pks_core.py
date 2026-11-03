@@ -7,6 +7,7 @@ so classification can be tested without GPU or model downloads.
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
@@ -38,10 +39,11 @@ def read_json(path: str | Path) -> Any:
 
 
 def write_json(path: str | Path, obj: Any) -> None:
-    p = Path(path)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    with p.open("w", encoding="utf-8") as f:
-        json.dump(obj, f, ensure_ascii=False, indent=2)
+    p = Path(path); p.parent.mkdir(parents=True, exist_ok=True)
+    tmp = p.with_name(p.name + ".tmp")
+    with tmp.open("w", encoding="utf-8") as f:
+        json.dump(obj, f, ensure_ascii=False, indent=2, allow_nan=False)
+    tmp.replace(p)
 
 
 def load_qa_pairs(path: str | Path) -> List[Dict[str, str]]:
@@ -92,9 +94,14 @@ def calibration_stats(values: Iterable[float]) -> Dict[str, float]:
 
 def load_calibration(directory: str | Path) -> Dict[str, Dict[str, float]]:
     directory = Path(directory)
+    provenance_path = directory / "calibration_summary.json"
+    provenance = read_json(provenance_path) if provenance_path.is_file() else {}
+    expected_hashes = provenance.get("score_sha256", {})
     stats: Dict[str, Dict[str, float]] = {}
     for cat in CATEGORIES:
         path = directory / DEFAULT_CALIBRATION_FILENAMES[cat]
+        if expected_hashes and hashlib.sha256(path.read_bytes()).hexdigest() != expected_hashes.get(cat):
+            raise ValueError("Calibration score checksum mismatch: " + cat)
         data = read_json(path)
         if not isinstance(data, dict) or not isinstance(data.get("pmi_classic"), list):
             raise ValueError(f"Expected a pmi_classic score list in {path}")

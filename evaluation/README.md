@@ -1,145 +1,86 @@
-# Evaluation: controlled multi-hop RAG generation (Section 4)
+# Evaluation of the released benchmark
 
-This directory evaluates generator models against the benchmark's fixed 11-document contexts, using the six evidence-placement/ordering configurations. It implements inference, exact-match screening, Gemini-based semantic equivalence checking, and diagnostic metrics. The released evaluation module focuses on the fixed-context benchmark; supplemental experiments are documented in the supplementary PDF.
+**Input:** the existing JSON array of benchmark chains. **Output:** raw model responses, explicitly judged labels, diagnostics, and coverage reports. No regeneration, PKS rerun, separate context file, or sharding is required.
 
-## Experimental design
+Use the [root quick start](../README.md#quick-start). `evaluate_dataset.py` runs the stages in order. `run_dataset.py` runs generation only; `scoring/judge_answers.py` and `scoring/aggregate.py` can be run independently.
 
-| Depth | Configuration | Placement |
-|---|---|---|
-| n1 | A1 | Gold document first |
-| n1 | A2 | Gold document at position 6 |
-| n1 | A3 | Gold document last |
-| n2, n3, n4 | B1 | Gold block centred, chain order |
-| n2, n3, n4 | B2 | Gold block centred, reversed order |
-| n2, n3, n4 | B3 | Gold documents shuffled with distractors |
+## Required choices
 
-The input is the output of `data_generation/context_formation/construct_contexts.py` or `prepare_released_dataset.py`. For each complete four-hop chain it contains 12 context records, each with 11 documents, a hop question, gold answer, and gold positions. The same contexts are used for every model.
+| Option | Meaning |
+|---|---|
+| `--distractor-family relevant` / `irrelevant` | Select exactly one stored pool in the released JSON. These are field labels, not proof of how that pool was historically selected. |
+| `--distractor-family random` | Use the single `context_distractors` pool in newly constructed data. |
+| `--length-policy none` | Preserve stored documents without length matching. |
+| `--length-policy legacy_word_min` | Use the original API scripts' `int(word_count * 1.3)` estimate, matching corresponding relevant/irrelevant distractor slots to their minimum. Gold documents are never truncated. |
+| `--length-policy tokenizer_min` | Match the two stored pools using an actual tokenizer; supply `tokenizer_id` for API models. This needs the local-model requirements. |
+| `--judge-policy legacy_short` | Exact match is correct; a non-exact output with at most three Unicode word tokens is incorrect without judging; a longer non-exact output goes to the original type-aware prompt. |
+| `--judge-policy semantic_all` | Every non-exact output goes to that judge prompt. This differs from the uploaded short-answer script and may change accuracy. |
+| `--match-policy legacy` | Original strip/lowercase/trailing-punctuation EM, plus Unicode-regex word counting for CMD. Direct runner default. |
+| `--match-policy normalized` | Unicode/case/punctuation normalization and whitespace CMD counting, compatible with the earlier general interface. |
+| `--max-tokens` | Explicit generator cap; otherwise the model config value, then 50. The supplementary 15-token protocol must be selected deliberately. |
+| `--judge-model`, `--judge-max-tokens` | Explicit judge identifier and output budget (default 2,048 to allow structured output). The preserved prompt is not evidence of historical model/budget identity. |
 
-The primary prompt instructs each model to answer in 1–3 words using **only** the provided documents. The primary prompt uses the fixed-context generation instruction from the study. Decoding is greedy (`temperature=0`, `top_p=1`). The runner default is 50 output tokens; the primary configuration documented in Supplementary Material Section K.6 specifies 15, so the released-benchmark command explicitly uses `--max-tokens 15`. For the local Transformers engine, `do_sample=False` is used. Provider-specific model availability and parameter support should be confirmed before a run.
+Do not combine scores across these policies, model revisions, source datasets, samples, or distractor families without explicitly defining the comparison. Each run records these choices. B3 uses the existing seeded context builder, not a claim to recover historical unrecorded random orders.
 
-## Installation
+## Dataset-quality handling
 
-Run from the repository root:
+The parser scans the whole JSON before a paid generation run, even when evaluating two chains. It checks record count, complete n1–n4 schema, 11 distinct documents, cumulative gold evidence, decomposition links, and whether gold-answer phrases appear in distractors. Missing or duplicated records and malformed JSON are hard failures.
 
-```bash
-python -m pip install -r evaluation/requirements.txt
-```
+`--audit-policy strict` also stops on lexical/chain warnings. `--audit-policy report` permits measuring the unchanged released file but records `dataset_quality_status: requires_review` in generated records and metric summaries. It does not drop, rename, repair, or resample data. A string match in a distractor does not prove answerability, and lexical checks cannot certify a question's semantic correctness. Resolve semantic inconsistencies using the source records and validation evidence, not automated entity substitutions.
 
-For local model inference through Transformers, install compatible versions of `torch`, `transformers`, and `accelerate` for the target GPU. Set provider tokens in your shell environment (`DEEPINFRA_TOKEN`, `GOOGLE_API_KEY`, or other names referenced in the model configuration). Do not commit these values.
+New dataset construction uses strict validation. Historical evaluation can retain the original data with an explicit report policy. These are different tasks.
 
-Copy `evaluation/model_config.example.json` to a private configuration file and select the models and provider endpoints for your experiment. The example contains representative model identifiers used in the research scripts, **not** the full 12-model experimental manifest. To run local models, add entries with `"provider": "transformers"` and `"model_id": "/path/to/model"`. For an OpenAI-compatible local vLLM server, use `"provider": "openai_compatible"`, its server URL, and the configured key environment variable.
-
-## Use the downloadable 528-instance benchmark
-
-The [released PKS-filtered JSON](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing) can be evaluated without rerunning dataset generation or PKS filtering. Download it as `data_generation/work/benchmark_528.json`, then create the evaluator's expected input:
-
-```bash
-python data_generation/context_formation/prepare_released_dataset.py \
-  --input data_generation/work/benchmark_528.json \
-  --output data_generation/work/contexts_11doc_irrelevant.json \
-  --distractor-family irrelevant --expected-chains 528 --seed 42
-
-python -m evaluation.run_inference \
-  --input data_generation/work/contexts_11doc_irrelevant.json \
-  --models evaluation/model_config.example.json \
-  --output evaluation/work/generations_irrelevant.jsonl \
-  --run-tag released528_irrelevant --max-tokens 15 --dry-run
-```
-
-For the full 528-chain corpus, the context builder also supports `--shard-dir` and `--chains-per-shard` so the existing inference runner can operate on small files without loading all contexts simultaneously. The root README includes a sharded command loop. The judging/aggregation commands currently load their JSONL input into memory, so reserve adequate RAM or process smaller batches first. Model context-window capacity must be checked independently from Python memory capacity. Some experimental scripts also use per-slot distractor length matching; the adapter does not apply those model-specific caps.
-
-The adapter selects one of the JSON's two distractor families. To compare the alternative `relevant` pool, prepare it separately and use a different run tag/output path. See the [root README](../README.md#run-the-released-benchmark) for the full download → evaluation → judging → aggregation sequence. For a new dataset with `context_distractors` fields, continue with the general context preparation procedure below.
-
-## 1. Prepare the evaluation contexts
-
-Complete dataset generation, PKS filtering, and multi-hop construction first. When the filtered multi-hop JSON is ready:
+## Separate generation and judging commands
 
 ```bash
-python data_generation/context_formation/construct_contexts.py \
-  --input data_generation/work/filtered_multihop.json \
-  --output data_generation/work/contexts_11doc.json \
-  --seed 42
+python -m evaluation.run_dataset \
+  --dataset data/benchmark_528.json --expected-chains 528 \
+  --models evaluation/model_config.original_api.example.json \
+  --only-model gemini-flash-lite --output-dir runs/example \
+  --distractor-family irrelevant --length-policy legacy_word_min \
+  --max-tokens 50 --sample-chains 2 --seed 42 --dry-run
 ```
 
-This step creates and freezes the A1–A3 and B1–B3 evidence orderings. Do not resample distractors or reposition evidence independently for each model.
-
-## 2. Run model generation
-
-Validate the planned experiment offline:
-
-```bash
-python -m evaluation.run_inference \
-  --input data_generation/work/contexts_11doc.json \
-  --models evaluation/model_config.example.json \
-  --output evaluation/work/generations.jsonl \
-  --dry-run
-```
-
-Then run the same command without `--dry-run` to generate responses. To select a single model use `--only-model qwen3-next-80b`. To conduct a small trial, add `--sample-chains 2 --seed 42`. Local Transformers inference requires `--workers 1`.
-
-Each JSONL record stores the model ID, chain ID, hop, configuration, the 11 documents, evidence positions, raw generation, extracted answer, decoding metadata, and status. Completed requests are resumed by stable request ID; a different context/model/prompt fingerprint cannot be silently reused. Provider errors are recorded separately and are not treated as incorrect answers.
-
-## 3. Tiered answer scoring
+Inspect the audit and remove `--dry-run` for a live run. Use `--audit-policy report` only to run the original release with its quality warnings recorded. Then:
 
 ```bash
 python -m evaluation.scoring.judge_answers \
-  --input evaluation/work/generations.jsonl \
-  --output evaluation/work/judged.jsonl \
-  --judge-model gemini-2.5-pro
-```
-
-Stage 1 checks normalised exact match against comma-separated gold aliases. **Every non-exact output**, including short aliases and synonyms, is sent to the judge for strict factual equivalence. The judge receives only the question, the gold variants, and the generated response. It returns `CORRECT`, `INCORRECT`, or `NO_ANSWER` with a short normalised answer. Failed judge calls remain unscored and must be resolved before complete accuracy is reported. The original `evaluation.py` and `evaluation2.py` provide the basis for this judging approach; the packaged runner uses the supported `google-genai` SDK and the model specified above.
-
-## 4. Aggregate the metrics
-
-```bash
+  --input runs/example/generations.jsonl --output runs/example/judged.jsonl \
+  --judge-model gemini-2.5-pro --judge-policy legacy_short
 python -m evaluation.scoring.aggregate \
-  --input evaluation/work/judged.jsonl \
-  --output-dir evaluation/work/summary \
-  --ccs-single A2
+  --input runs/example/judged.jsonl --output-dir runs/example/summary --ccs-single A2
 ```
 
-The aggregator exports `by_condition.csv`, `chain_completion.csv`, and `evaluation_metrics.json`:
+`--only-model` takes keys from the configuration, not remote model identifiers. The example configurations are editable connection examples, not a complete or live-verified paper roster. API availability, access, context limits, and costs are checked in the user's environment. No embedded credentials are accepted. The direct evaluator reads process environment variables; merely creating a `.env` file does not load it automatically.
 
-- **Accuracy:** Correct answer after exact match plus judge, grouped by model/hop/configuration. Accuracy remains empty while any judgment is incomplete.
-- **CMD:** Fraction of primary outputs containing 1–3 whitespace-delimited words.
-- **CONFAB:** Fraction judged `NO_ANSWER`, including off-task, gibberish, or refusal. Missing judgments are not classified.
-- **DISTRACTED / FABRICATED:** For judged incorrect answers, check whether the normalised predicted answer appears in a distractor (not a gold document). Otherwise report FABRICATED. Refusals/non-answers remain separate.
-- **CCS:** Same-chain cumulative correctness at each hop depth. For a B1/B2/B3 series the default n1 reference is A2; use `--ccs-single` to choose a different n1 placement. A CCS is omitted unless all relevant chains and judgments are complete.
+For a local model install `requirements-local-models.txt`, use `model_config.local.example.json`, and run one local model at a time. The input is not silently truncated to fit a checkpoint's window. A context-window failure is an operational error requiring an explicit experimental decision. A fixed number of documents does not mean a fixed number of tokens.
 
-## 5. Optional evidence-attribution (EAR) probe
+## Outputs, resume, and failures
 
-Evidence citation requires a **different prompt** and is evaluated independently of the primary accuracy experiment:
+- `dataset_audit.json`: full-input structure, counts, checksum, and quality warnings.
+- `run_manifest.json`: dataset hash, sample indices, code identity, models, token budgets, seed, family, and length/match settings.
+- `generations.jsonl`: original question/context identifiers, the actual supplied documents, untouched raw responses, extracted citation fields when requested, status, usage, finish reason, and generation fingerprint.
+- `judged.jsonl`: predictions plus judge model/policy, prompt/code fingerprint, strict typed verdict, normalized answer, and judgment status.
+- `summary/`: per-condition CSVs, explicit CCS reference condition, and JSON coverage metrics.
 
-```bash
-python -m evaluation.run_inference \
-  --input data_generation/work/contexts_11doc.json \
-  --models evaluation/model_config.example.json \
-  --output evaluation/work/citations.jsonl \
-  --mode citation --run-tag citation
+The records retain the actual supplied documents, so output files can be large even though processing is incremental. JSONL is an append-only record log. On retries, readers use the latest entry for each request ID. Successful identical work is reused; operational failures are retried. Changing generation inputs/settings/code requires a new output directory. Changing judge model, policy, budget, prompt/code, or prediction invalidates old judgments. Keep raw generations: rejudging should not require paying for generation again.
 
-python -m evaluation.scoring.judge_answers \
-  --input evaluation/work/citations.jsonl \
-  --output evaluation/work/citations_judged.jsonl
+An active `.lock` prevents concurrent writers. After an interrupted process, remove a stale lock only after checking no writer is active. A partially written JSONL tail causes a clear parse error rather than silently losing data; preserve a backup before removing only the truncated final line.
 
-python -m evaluation.scoring.aggregate \
-  --input evaluation/work/citations_judged.jsonl \
-  --output-dir evaluation/work/citation_summary
-```
+Generation and judge transport/schema failures are **not wrong answers and not confabulations**. Final metrics are withheld for incomplete groups or missing scheduled records. The separate `observed_scored_accuracy` describes only the scored subset and must not be presented as a complete-run result.
 
-The citation probe requests a two-line `Answer` and `Document` output. EAR here measures whether the cited integer document number is one of the gold document positions; no substring matching is applied to document numbers. For a multi-hop chain any required gold document is accepted as supporting evidence. The `00_new_metric3*.py` scripts are the source for this supplementary task.
+## Metric definitions
 
-## Source compatibility and run integrity
+Accuracy is the mean of final Boolean correctness labels when the scheduled group is complete. CMD uses raw generator output, not judge-normalized text. CONFAB uses the `NO_ANSWER` verdict and therefore depends on the chosen judging policy. A short non-exact answer in `legacy_short` is not semantically diagnosed.
 
-- `TestA1`–`TestB3` in some older inference scripts refer to two distractor **families** (relevant and irrelevant) and positional choices. They are **not identical** to the paper's A1–A3 single-hop / B1–B3 multi-hop conditions. This evaluator reads the canonical context-formation output instead.
-- The live-retrieval benchmark uses BM25/BGE retrieval and **does not** measure the same generator-only oracle-context setting. Keep live-retrieval experiments separately under analysis.
-- Provider model IDs, evaluation-set composition, output caps and the judge model must be recorded with each actual run. The example config is not the paper's exact model inventory.
-- The CLI tests are offline and do not verify provider endpoints or reproduce historical numerical results; these require the released benchmark and actual model inference.
+DISTRACTED/FABRICATED use normalized, token-boundary phrase presence in distractors. This is an explicit lexical diagnostic, not the fuzzy token-matching procedure in every historical analysis notebook, and not causal proof. The decomposition is retained for inspection; intermediate-hop failure percentages are not automatically reconstructed.
 
-## Offline checks
+CCS uses the explicitly selected single-hop baseline (default A2), then B1, B2, or B3 consistently at deeper hops of the same chain. It requires all four depths; incomplete chains are reported and final CCS is withheld. This convention must match the experiment being compared.
 
-```bash
-python -m unittest discover -s evaluation/tests -v
-```
+Citation probing is separate: use `python -m evaluation.run_dataset ... --mode citation --run-tag citation --max-tokens 60` in a new directory. A cited document must equal an integer gold position. Position 1 does not match position 11. EAR is a document-citation check, not verification that every reasoning step was followed. The two-line citation prompt and output budget differ from primary generation.
 
-All generated datasets, responses and reports belong in `evaluation/work/` (ignored by Git), not in the source-code release.
+## Compatibility interfaces
+
+`run_inference.py` and `prepare_released_dataset.py` remain for previously exported context files. They are not needed for the direct workflow. The old sharded export is optional and does not shorten a model's input. The direct workflow is the recommended entry point for the 528-chain JSON.
+
+See [changes](../docs/FIXES.md), [source map](SOURCE_MAP.md), and [verification](../docs/TEST_REPORT.md).

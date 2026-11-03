@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -53,13 +54,14 @@ def make_job(row: Dict[str, Any], model_key: str, cfg: Dict[str, Any], *,
         prompt = citation_prompt(row["question"], row["documents"])
     else:
         raise ValueError(f"Unknown mode: {mode}")
-    identity = f"{model_key}|{task_key(row)}|{run_tag}|{mode}"
+    identity = f"{model_key}|{row.get('distractor_family', 'unspecified')}|{task_key(row)}|{run_tag}|{mode}"
     sig = hashlib.sha256(json.dumps({"prompt": prompt, "model": cfg, "max_tokens": max_tokens},
                                     sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
     return {"request_id": identity, "request_fingerprint": sig, "model_key": model_key,
             "model_id": cfg["model_id"], "provider": cfg["provider"],
             "run_tag": run_tag, "mode": mode, "max_tokens": max_tokens,
-            "free_answer": free_answer, "prompt": prompt,
+            "free_answer": free_answer, "prompt": prompt, "distractor_family": row.get("distractor_family", "unspecified"),
+            "length_matching": row.get("length_matching"), "decomposition": row.get("decomposition", []),
             "source_entry_index": row["source_entry_index"],
             "hop": row["hop"], "configuration": row["configuration"],
             "question": row["question"], "original_question": row.get("original_question", ""),
@@ -86,7 +88,7 @@ def do_job(job: Dict[str, Any], *, gen: Callable = generate, max_retries: int = 
         result["generated_answer"] = ""
         result["generated_text"] = ""
         result["is_exact_match"] = False
-        result["command_following"] = False if job["mode"] == "main" else None
+        result["command_following"] = None
         return result
     raw = str(response.get("generated_text", "") or "")
     if job["mode"] == "citation":
@@ -94,11 +96,13 @@ def do_job(job: Dict[str, Any], *, gen: Callable = generate, max_retries: int = 
         result["cited_document_1_based"] = citation
         result["is_citation_correct"] = citation in job["gold_positions_1_based"]
     else:
-        prediction = extract_final_answer(raw, free_answer=job["free_answer"])
+        prediction = extract_final_answer(raw, free_answer=True) if job["free_answer"] else raw.strip()
     result["generated_text"] = raw
     result["generated_answer"] = prediction
-    result["is_exact_match"] = exact_match(prediction, job["golden_answer"])
-    result["command_following"] = command_following(raw) if job["mode"] == "main" and not job["free_answer"] else None
+    result["is_exact_match"] = exact_match(prediction, job["golden_answer"], policy=job.get("match_policy", "normalized"))
+    result["word_count_policy"] = "unicode_word_regex" if job.get("match_policy") == "legacy" else "whitespace"
+    follows = 1 <= len(re.findall(r"\b\w+\b", raw, re.UNICODE)) <= 3 if job.get("match_policy") == "legacy" else command_following(raw)
+    result["command_following"] = follows if job["mode"] == "main" and not job["free_answer"] else None
     result.update({k: response.get(k) for k in ("prompt_tokens", "completion_tokens", "finish_reason", "time_seconds")})
     return result
 

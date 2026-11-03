@@ -1,0 +1,9 @@
+{
+  "models": {
+    "qwen-local": {
+      "provider": "transformers",
+      "model_id": "Qwen/Qwen2.5-7B-Instruct",
+      "max_tokens": 50
+    }
+  }
+}

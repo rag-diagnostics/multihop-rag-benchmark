@@ -1,0 +1,5 @@
+{
+  "scope": "release text/code files",
+  "credential_pattern_file_matches": [],
+  "limitation": "Pattern scan plus inspection; not a formal secret-detection guarantee"
+}

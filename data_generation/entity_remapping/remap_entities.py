@@ -1,16 +1,17 @@
-import pandas as pd
-import spacy
+"""Preserved entity/season/year/synonym transformation with explicit seed and lossless I/O."""
+from __future__ import annotations
+import argparse
 import random
-from nltk.corpus import wordnet
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from rag_utils.tables import read_records, write_records, ensure_serials
+from rag_utils.io import atomic_json, fingerprint, require_new_manifest
+nlp = None
+wordnet = None
+master_entity_map = {}
+SYNONYM_REPLACEMENT_PROBABILITY = 0.1
 
-# Load the spaCy English model
-nlp = spacy.load("en_core_web_sm")
-
-# --- CONTROL PANEL ---
-SYNONYM_REPLACEMENT_PROBABILITY = 0.1 # Adjust 0.0 (off) to 1.0 (always on)
-
-# --- 1. REPLACEMENT POOLS (EXPANDED TO PREVENT ERRORS) ---
-# This list has been expanded to be larger than the number of original countries.
 REPLACEMENT_COUNTRIES_AND_ADJECTIVES = [
 ("Bath", "Bathian"), ("York", "Yorkian"), ("Durham", "Durhamian"), ("Exeter", "Exonian"), ("Norwich", "Norwichian"), ("Oxford", "Oxfordian"), ("Cambridge", "Cambridgian"), ("Salisbury", "Salisburian"), ("Hereford", "Herefordian"), ("Worcester", "Worcesterian"), ("Gloucester", "Gloucesterian"), ("Carlisle", "Carlislean"), ("Lancaster", "Lancastrian"), ("Blackpool", "Blackpoolian"), ("Bolton", "Boltonian"), ("Wigan", "Wiganer"), ("Rochdale", "Rochdalian"), ("Oldham", "Oldhamer"), ("Huddersfield", "Huddersfieldian"), ("Halifax", "Halifaxian"), ("Doncaster", "Doncasterian"), ("Rotherham", "Rotherhamer"), ("Sheffield", "Sheffieldian"), ("Leeds", "Leedsian"), ("Liverpool", "Liverpudlian"), ("Preston", "Prestonian"), ("Chester", "Chesterian"), ("Birkenhead", "Birkenheadian"), ("Middlesbrough", "Middlesbroughian"), ("Sunderland", "Sunderlandian"), ("Newcastle", "Newcastlian"), ("Brighton", "Brightonian"), ("Hove", "Hovian"), ("Eastbourne", "Eastbournian"), ("Southampton", "Southamptonian"), ("Portsmouth", "Portsmouthian"), ("Swansea", "Swansean"), ("Cardiff", "Cardiffian"), ("Newport", "Newportian"), ("Bangor", "Bangorian"), ("Belfast", "Belfastian"), ("Londonderry", "Londonderrian"), ("Llandudno", "Llandudnian"), ("Aberystwyth", "Aberystwythian"), ("Wrexham", "Wrexhamian"), ("Stornoway", "Stornowayan"), ("Inverness", "Invernessian"), ("Stirling", "Stirlingian"), ("Perth", "Perthan"), ("Dundee", "Dundonian"), ("Aberdeen", "Aberdonian"), ("Stonehaven", "Stonehavenian"), ("Ayr", "Ayrian"), ("Kilmarnock", "Kilmarnockian"), ("Hamilton", "Hamiltonian"), ("Falkirk", "Falkirian"), ("Greenock", "Greenockian"), ("Grangemouth", "Grangemouthian"), ("Coatbridge", "Coatbridgian"), ("Lisburn", "Lisburnian")
 ]
@@ -19,7 +20,6 @@ REPLACEMENT_CITIES = [
 "Boston", "Chicago", "Houston", "Phoenix", "Dallas", "Atlanta", "Denver", "Seattle", "Portland", "Cleveland", "Pittsburgh", "Detroit", "Orlando", "Tampa", "Buffalo", "Albany", "Rochester", "Hartford", "Providence", "Wilmington", "Mobile", "Savannah", "Knoxville", "Lexington", "Nashville", "Memphis", "Boulder", "Salem", "Eugene", "Spokane", "Tacoma", "Fresno"
 ]
 
-# --- 2. DYNAMIC MAPPING CREATION ---
 original_countries = {
     "Egypt": "Egyptian", "Ghana": "Ghanaian", "Kenya": "Kenyan", "Libya": "Libyan",
     "South Africa": "South African", "Nigeria": "Nigerian", "Ethiopia": "Ethiopian", "Algeria": "Algerian",
@@ -39,38 +39,38 @@ original_cities = [
     "Seville", "Gibraltar", "Crimea", "Rumania", "Baghdad", "Byzantium", "Crete"
 ]
 
-# Robustness Check: Ensure replacement pools are large enough
-if len(REPLACEMENT_COUNTRIES_AND_ADJECTIVES) < len(original_countries):
-    raise ValueError(f"Replacement country pool is too small. Need {len(original_countries)}, have {len(REPLACEMENT_COUNTRIES_AND_ADJECTIVES)}.")
-if len(REPLACEMENT_CITIES) < len(original_cities):
-    raise ValueError(f"Replacement city pool is too small. Need {len(original_cities)}, have {len(REPLACEMENT_CITIES)}.")
-
-# Shuffle the replacement lists
-random.shuffle(REPLACEMENT_COUNTRIES_AND_ADJECTIVES)
-random.shuffle(REPLACEMENT_CITIES)
-
-# Create the new random country map
-country_map = {}
-shuffled_replacements = REPLACEMENT_COUNTRIES_AND_ADJECTIVES[:len(original_countries)]
-for i, (country_key, adj_key) in enumerate(original_countries.items()):
-    new_country, new_adj = shuffled_replacements[i]
-    country_map[country_key] = new_country
-    country_map[adj_key] = new_adj
-
-city_map = dict(zip(original_cities, REPLACEMENT_CITIES))
 region_map = {
     "Greenland": "Siberia", "The Outback": "Near East", "Patagonia": "The Andes",
     "Baltic states": "The Amazon", "Ottoman Empire": "The Congo", "Heartland": "Antarctica",
     "Pacific Russia": "The Sahara"
 }
-master_entity_map = {**country_map, **city_map, **region_map}
+
 season_map = {
     "Fall": "Winter",
     "Spring": "Summer",
     "Summer": "Fall",
     "Winter": "Spring"
 }
-# --- TEXT TRANSFORMATION FUNCTION ---
+
+def initialize(seed=42, nlp_model="en_core_web_sm"):
+    global nlp, wordnet, master_entity_map
+    import spacy
+    from nltk.corpus import wordnet as wn
+    random.seed(seed)
+    nlp = spacy.load(nlp_model)
+    # Fail before modifying any records if the optional linguistic resource is missing.
+    if SYNONYM_REPLACEMENT_PROBABILITY > 0: wn.ensure_loaded()
+    wordnet = wn
+    countries = list(REPLACEMENT_COUNTRIES_AND_ADJECTIVES)
+    cities = list(REPLACEMENT_CITIES)
+    if len(countries) < len(original_countries) or len(cities) < len(original_cities):
+        raise ValueError("Replacement pools are too small")
+    random.shuffle(countries); random.shuffle(cities)
+    country_map = {}
+    for (country, adj), (new_country, new_adj) in zip(original_countries.items(), countries):
+        country_map[country], country_map[adj] = new_country, new_adj
+    master_entity_map = {**country_map, **dict(zip(original_cities, cities)), **region_map}
+
 def get_synonym(word):
     synsets = wordnet.synsets(word.lemma_)
     for synset in synsets:
@@ -111,39 +111,40 @@ def transform_text(text: str, last_number: int, ad_mode: bool):
         new_text_parts.append(replacement_word + token.whitespace_)
     return "".join(new_text_parts), current_number
 
+def process_records(rows, seed=42, column_name="Summary", initialize_fn=initialize):
+    rows = ensure_serials(rows)
+    for row in rows:
+        if any(row.get(k) for k in ("question", "answer", "hops", "decomposition")):
+            raise ValueError("Entity remapping must happen BEFORE QA and multi-hop construction, never on an assembled benchmark")
+        if not isinstance(row.get(column_name), str) or not row[column_name].strip():
+            raise ValueError("Missing source narrative")
+    initialize_fn(seed)
+    result = []
+    for i, row in enumerate(rows):
+        out = dict(row)
+        transformed, _ = transform_text(row[column_name], random.randint(2050, 20000), i % 2 == 0)
+        out[column_name] = transformed
+        out["Document"] = transformed
+        result.append(out)
+    return result
 
-def process_excel_file(input_path, output_path, column_name):
-    try:
-        print(f"🔄 Reading data from '{input_path}'...")
-        df = pd.read_excel(input_path)
-        if column_name not in df.columns:
-            print(f"❌ Error: Column '{column_name}' not found in the file.")
-            return
 
-        print(f"⚙️ Transforming text in the '{column_name}' column...")
-        new_summaries = []
-        ad_mode = True  # Start with AD for first row
+def process_excel_file(input_path, output_path, column_name="Summary", seed=42):
+    if Path(input_path).resolve() == Path(output_path).resolve(): raise ValueError("Preserve the source file; use separate output")
+    rows = read_records(input_path)
+    result = process_records(rows, seed, column_name)
+    write_records(output_path, result)
+    atomic_json(str(output_path) + ".transformation.json", {"seed": seed, "entity_map": master_entity_map,
+        "season_map": season_map, "synonym_probability": SYNONYM_REPLACEMENT_PROBABILITY,
+        "input_sha256": fingerprint(rows), "output_sha256": fingerprint(result),
+        "algorithm": "original token-wise transformation; multiword-key behaviour unchanged"})
+    return result
 
-        for summary_text in df[column_name]:
-            starting_number = random.randint(2050, 20000)
-            transformed_summary, _ = transform_text(summary_text, starting_number, ad_mode)
-            new_summaries.append(transformed_summary)
 
-            # Alternate AD/BC mode for next row
-            ad_mode = not ad_mode
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--input", required=True); p.add_argument("--output", required=True)
+    p.add_argument("--column", default="Summary"); p.add_argument("--seed", type=int, default=42)
+    a = p.parse_args(); process_excel_file(a.input, a.output, a.column, a.seed)
 
-        df[column_name] = new_summaries
-        df.to_excel(output_path, index=False)
-        print(f"✅ Successfully created modified file at '{output_path}'!")
-
-    except FileNotFoundError:
-        print(f"❌ Error: The file '{input_path}' was not found.")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-
-# --- RUN THE PROCESS ---
-if __name__ == "__main__":
-    input_file = "final_dataset.xlsx"
-    output_file = "0modified_final_dataset_004.xlsx"
-    target_column = "Summary"
-    process_excel_file(input_file, output_file, target_column)
+if __name__ == "__main__": main()

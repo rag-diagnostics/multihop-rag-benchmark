@@ -7,10 +7,11 @@
 
 <p align="center">
   <a href="#overview">Overview</a> &nbsp;·&nbsp;
+  <a href="#dataset-download">Dataset</a> &nbsp;·&nbsp;
   <a href="#how-it-works">Method</a> &nbsp;·&nbsp;
   <a href="#evidence-controls">Evidence controls</a> &nbsp;·&nbsp;
   <a href="#what-the-paper-finds">Findings</a> &nbsp;·&nbsp;
-  <a href="#quick-start">Quick start</a> &nbsp;·&nbsp;
+  <a href="#quick-start">Quick start</a>
 </p>
 
 <p align="center">
@@ -26,9 +27,7 @@
 
 ## Overview
 
-**Can a language model connect the right evidence across multiple documents when retrieval is no longer the problem?**
-
-This repository provides the dataset-construction, parametric knowledge filtering, and generator-evaluation code associated with *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*. The benchmark tests whether language models can combine evidence across documents when the retrieved context is **fixed**.
+This repository provides the dataset-construction, parametric knowledge filtering, and generator-evaluation code associated with *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*. The benchmark tests whether language models can combine evidence across documents when the retrieved context is fixed.
 
 By controlling reasoning depth, evidence position, ordering, and distractor content, it isolates failures in the **generator** rather than confounding them with retrieval quality. **The primary benchmark is not a live-retrieval evaluation.** A separate retrieval validation is included in the [supplementary material](Supplementary%20Material.pdf).
 
@@ -37,7 +36,7 @@ By controlling reasoning depth, evidence position, ordering, and distractor cont
 | Property | Design |
 | :-- | :-- |
 | Source material | 600 Diplomacy-derived source samples: 300 LLM-vs-LLM game samples and 300 from the QANTA Diplomacy corpus |
-| Retained after PKS filtering | 528 question instances, as reported in the paper |
+| Retained after PKS filtering | **528 question chains**, each with 1- through 4-hop versions |
 | Reasoning complexity | 1, 2, 3, and 4 hops |
 | Context budget | Exactly **11 documents** per question |
 | Evidence / distractors | 1-4 gold documents plus 10-7 screened distractors |
@@ -46,13 +45,25 @@ By controlling reasoning depth, evidence position, ordering, and distractor cont
 | Expected answers | Short, document-grounded answers of 1-3 words |
 | Scoring | Deterministic generation, exact match, semantic equivalence, and diagnostic metrics |
 
+## Dataset download
+
+The **PKS-filtered benchmark (528 question chains)** is available as a downloadable JSON file:
+
+**[Download the 528-instance benchmark from Google Drive](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing)**
+
+The file contains each chain's `original_question`, gold `answer`, reasoning `decomposition`, and the `hops` (`n1`-`n4`) with gold documents and two stored distractor pools (`relevant` and `irrelevant`). The benchmark is **already generated and PKS-filtered**. You can evaluate it directly without rerunning narrative generation, multi-hop construction, or PKS calibration.
+
+Save the downloaded file as `data/benchmark_528.json`, or use the downloader below. The direct runner reads this JSON, constructs each context in memory, generates answers, judges them, and writes metrics. **No sharding, separate context export, data regeneration, or second PKS filtering pass is required.**
+
+The downloaded file is immutable input. Structural and lexical checks produce an audit before any paid model calls. They report inconsistent bridge traces and answer spans in distractors; they do not silently rename entities, drop records, or certify semantic validity. See [dataset-quality handling](evaluation/README.md#dataset-quality-handling).
+
 ## How it works
 
 <p align="center">
   <img src="assets/readme/framework.svg" alt="Diagram showing source collection, narrative transformation, entity remapping, PKS filtering, controlled multi-hop composition, and generator evaluation." width="100%" />
 </p>
 
-The source samples are turned into historical-style narratives, named entities and temporal markers are remapped to make surface-level memorisation less useful. Short, span-supported questions are expanded into multi-hop chains by replacing bridge entities with descriptions that must be resolved from additional documents. A calibrated **Parametric Knowledge Score (PKS)** screens out instances with unusually strong question-answer associations under a reference model.
+The source samples are turned into historical-style narratives; named entities and temporal markers are remapped to make surface-level memorisation less useful. Short, span-supported questions are expanded into multi-hop chains by replacing bridge entities with descriptions that must be resolved from additional documents. A calibrated **Parametric Knowledge Score (PKS)** screens out instances with unusually strong question-answer associations under a reference model.
 
 Finally, each retained question is placed inside a **fixed 11-document context**, with controlled gold-evidence placement and screened distractors, for generator-only evaluation.
 
@@ -64,7 +75,7 @@ Finally, each retained question is placed inside a **fixed 11-document context**
 - **300 LLM-vs-LLM Diplomacy game samples**, generated using the [GoodStartLabs AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy) environment.
 - **300 QANTA Diplomacy corpus samples**, based on the [Diplomacy dataset](https://sites.google.com/view/qanta/projects/diplomacy) (Peskov et al., 2020).
 
-Gameplay conversations are transformed into historical-style narratives, followed by stochastic entity and temporal remapping, short question-answer generation, answer-span validation, distractor screening, and recursive multi-hop construction. The `data_generation/source_collection/webdiplomacy/` scripts are supplementary collection utilities, the original-source benchmark partition is based on QANTA Diplomacy.
+Gameplay conversations are transformed into historical-style narratives, followed by stochastic entity and temporal remapping, short question-answer generation, answer-span validation, distractor screening, and recursive multi-hop construction. The `data_generation/source_collection/webdiplomacy/` scripts are supplementary collection utilities; the benchmark's QANTA-source partition is drawn from QANTA Diplomacy, not from the WebDiplomacy scraper.
 
 See [data generation](data_generation/README.md) for input formats, dependencies, and stage-specific commands.
 
@@ -76,7 +87,7 @@ $$
 \mathrm{PKS}(q,a) = L_q + L_a - L_{aq}
 $$
 
-Here, each $L$ is a summed token-level negative log-likelihood under a fixed reference model. The score is calibrated using three distributions: **Known & Plausible**, **Unknown & Plausible**, and **Unknown & Implausible**. The nearest class is determined by standardised distance, the **Known & Plausible** category is excluded.
+Here, each $L$ is a summed token-level negative log-likelihood under a fixed reference model. The score is calibrated using three distributions: **Known & Plausible**, **Unknown & Plausible**, and **Unknown & Implausible**. The nearest class is determined by standardised distance; the **Known & Plausible** category is excluded.
 
 In the paper's main run, 600 candidates were filtered to **528 retained instances**, with Qwen2.5-7B-Instruct as the primary PKS reference model. This is a **screening heuristic for parametric answerability**, not a claim that training-data membership can be detected.
 
@@ -110,14 +121,14 @@ The experiments test **12 models** under a constant document budget. The headlin
 | **Does deeper reasoning matter?** | Accuracy decreases from hop 1 to hop 4 across all 12 evaluated models. |
 | **Does evidence placement matter?** | Many models exhibit single-hop sensitivity to middle-positioned evidence. |
 | **Does multi-hop ordering matter?** | Randomised evidence placement is often numerically stronger, but no formation comparison survives Holm correction. |
-| **Where do incorrect answers come from?** | The majority are *distracted* answers, approximately 2.3% are classified as *fabricated*. |
+| **Where do incorrect answers come from?** | Among single-hop failures, 97.7% are classified as *distracted* and 2.3% as *fabricated* (Supplementary Material, Table 2). |
 | **Where does a chain stop?** | The retained intermediate-entity trace identifies cases in which models output a bridge entity rather than the requested final answer. |
 
 See the paper's **Figure 2** for the model-by-hop accuracy heatmap and [Supplementary Material](Supplementary%20Material.pdf) for additional analyses and validation.
 
 ## Evaluation and diagnostic metrics
 
-Models answer using only the supplied documents and are instructed to return **1-3 words**. Normalised exact match is checked first, non-exact predictions are then evaluated for factual semantic equivalence by a judge model (Gemini 2.5 Pro).
+Models answer from the supplied documents in **1-3 words**. Select `legacy_short` to preserve the uploaded judging script, or `semantic_all` for the paper-described all-nonexact semantic check. The judge model is explicit; these policies can produce different scores.
 
 | Metric | What it measures |
 | :-- | :-- |
@@ -127,91 +138,76 @@ Models answer using only the supplied documents and are instructed to return **1
 | **EAR** | Correct attribution of gold supporting evidence in a separately prompted citation evaluation |
 | **CCS** | Correctness at every depth of the same reasoning chain, including shallower hops |
 | **DISTRACTED** | Incorrect answer appearing in a distractor document |
-| **FABRICATED** | Incorrect answer absent from the provided context under the paper's string-matching procedure |
+| **FABRICATED** | Incorrect answer absent from distractor documents under the selected lexical diagnostic |
 
-Additional error analysis checks whether an incorrect final output matches an **intermediate bridge entity** from the decomposition trace.
+The decomposition trace is retained in output records for subsequent intermediate-entity inspection. The primary aggregator reports the metrics above; it does not infer a causal reasoning trace.
 
 ## Quick start
 
-**Requirements:** Python 3.10+, stage-specific dependencies, model access or credentials, and input/calibration files. Dataset-generation modules have their own dependencies, consult their [guide](data_generation/README.md). GPU-compatible PyTorch/Transformers builds may be needed for local open-weight inference.
+The commands run from the repository root. Use Python 3.10+ and a fresh environment. The game engine has its own environment; it is not needed to evaluate the released dataset.
 
 ```bash
-# Clone the repository
 git clone https://github.com/rag-diagnostics/multihop-rag-benchmark.git
 cd multihop-rag-benchmark
-
-# Create an environment
 python -m venv .venv
 source .venv/bin/activate
-
-# Install the PKS and evaluation requirements
-python -m pip install -r parametric_filtering/requirements.txt
-python -m pip install -r evaluation/requirements.txt
+python -m pip install -r requirements.txt
+python -m tools.check_environment
 ```
 
-API-backed steps read credentials from environment variables (for example `DEEPINFRA_TOKEN` and `GOOGLE_API_KEY`). Keep secrets out of the repository, do not commit `.env` files or service tokens.
+On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1`. Multi-line examples below use Bash continuation characters; on PowerShell paste each command on one line.
 
-### Reproduce the evaluation pipeline
-
-The commands below start from a constructed multi-hop dataset (`data_generation/work/filtered_multihop.json`). Provide the source corpus, calibration QA files, model checkpoints, and API access separately. Run commands from the repository root.
-
-**1. Calibrate the PKS reference distributions**
+### 1. Download and validate the released dataset
 
 ```bash
-python parametric_filtering/baseline_calibration/para11.py \
-  --model Qwen/Qwen2.5-7B-Instruct \
-  --data-dir calibration_data \
-  --output-dir parametric_filtering/outputs/calibration
+python -m tools.download_dataset --output data/benchmark_528.json --expected-chains 528
+python -m evaluation.dataset --input data/benchmark_528.json \
+  --distractor-family irrelevant --expected-chains 528 \
+  --report runs/dataset_audit.json
 ```
 
-**2. Filter the multi-hop QA set**
+A browser download is also supported: save the complete JSON at that path, then run `python -m tools.download_dataset --output data/benchmark_528.json --verify-only`. A Drive preview, access-denied HTML, or an incomplete pasted excerpt is not a valid dataset. The downloader records the actual SHA-256; it does not invent a publisher checksum.
+
+### 2. Choose the model and experimental settings
+
+Copy `evaluation/model_config.original_api.example.json` to a local configuration file and set the desired model identifiers. It contains connection examples, **not the full paper roster or verified current endpoints**. Supply the API keys through `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) and, when applicable, `DEEPINFRA_TOKEN`. Never put credentials in source code or JSON configurations.
+
+The example below uses **one model, two chains, the stored irrelevant pool, the original API script's word-estimated slot-length matching, and the uploaded short-answer judging rule**. The generator cap is explicitly 50. The supplementary protocol uses 15; select `--max-tokens 15` in a separate output directory when that is the protocol being run. The example judge is the paper's Gemini 2.5 Pro; matching a historical local run requires its actual judge identifier.
 
 ```bash
-python parametric_filtering/pks_filtering/00_para14.py \
-  --model Qwen/Qwen2.5-7B-Instruct \
-  --input data_generation/work/filtered_multihop.json \
-  --calibration-dir parametric_filtering/outputs/calibration \
-  --output-dir parametric_filtering/outputs/filtering
-```
-
-Retained instances are written to `parametric_filtering/outputs/filtering/000_abl_filtered_unknowns.json`, `pks_filter_summary.json` records filtering outcomes.
-
-**3. Freeze the 11-document contexts**
-
-```bash
-python data_generation/context_formation/construct_contexts.py \
-  --input parametric_filtering/outputs/filtering/000_abl_filtered_unknowns.json \
-  --output data_generation/work/contexts_11doc.json \
-  --seed 42
-```
-
-**4. Validate and run model generation**
-
-```bash
-# Validate configuration without running generation
-python -m evaluation.run_inference \
-  --input data_generation/work/contexts_11doc.json \
-  --models evaluation/model_config.example.json \
-  --output evaluation/work/generations.jsonl \
+python -m evaluation.evaluate_dataset \
+  --dataset data/benchmark_528.json --expected-chains 528 \
+  --models evaluation/model_config.original_api.example.json \
+  --only-model gemini-flash-lite \
+  --output-dir runs/sample_irrelevant \
+  --distractor-family irrelevant --length-policy legacy_word_min \
+  --judge-model gemini-2.5-pro --judge-policy legacy_short \
+  --max-tokens 50 --sample-chains 2 --seed 42 \
   --dry-run
-
-# Remove --dry-run from the command above to execute inference.
 ```
 
-**5. Judge non-exact answers and aggregate metrics**
+A dry run validates inputs and plans requests. It does **not** generate answers or establish model endpoint availability. Remove `--dry-run` to execute generation, judging, and aggregation. For a full run, also remove `--sample-chains 2` and use a **new** output directory such as `runs/full_irrelevant`.
+
+The default `--audit-policy strict` stops on recorded chain/span warnings. To measure the original release **unchanged**, explicitly add `--audit-policy report` after examining the audit. That run retains all selected records and labels its outputs `requires_review`; it is not a repair of those records. See the [evaluation guide](evaluation/README.md) for settings, output fields, and separate stage commands.
+
+### 3. Inspect results
+
+Each run directory contains `dataset_audit.json`, `run_manifest.json`, `generations.jsonl`, `judged.jsonl`, and `summary/evaluation_metrics.json`. Operational errors are retried by rerunning the same command and remain distinct from wrong answers. A changed dataset, generation protocol, or selected sample requires a new output directory. A changed judge configuration is detected and rejudged.
+
+A complete run schedules **12 contexts per chain per model per distractor family**: 6,336 requests for 528 complete chains and one model, before any judge calls. Running both stored families is two separately named runs; do not pool them implicitly.
+
+### Building a new dataset instead
+
+The [construction guide](docs/BUILD_DATASET.md) covers game simulation, message extraction, source selection, narrative generation, transformation, QA, screened random distractors, validation, multi-hop construction, and PKS. JSON is the canonical long-text interchange format. The original prompts and transformation routines are retained where stated; strengthened validation and portability changes are listed in [the change record](docs/FIXES.md).
+
+### Tests and verification
 
 ```bash
-python -m evaluation.scoring.judge_answers \
-  --input evaluation/work/generations.jsonl \
-  --output evaluation/work/judged.jsonl \
-  --judge-model gemini-2.5-pro
-
-python -m evaluation.scoring.aggregate \
-  --input evaluation/work/judged.jsonl \
-  --output-dir evaluation/work/summary
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
 ```
 
-For configuration details, provider support, and output schemas, see the [evaluation guide](evaluation/README.md).
+See [test coverage and execution limits](docs/TEST_REPORT.md). Offline tests exercise the interfaces and safeguards with synthetic model replies; they are not live model experiments or proof of the historical paper results.
 
 ## Repository map
 
@@ -219,7 +215,7 @@ For configuration details, provider support, and output schemas, see the [evalua
 | :-- | :-- | :-- |
 | `data_generation/` | Diplomacy generation, narrative transformations, QA, distractor selection, and context construction | [Guide](data_generation/README.md) |
 | `parametric_filtering/` | PKS calibration, three-class filtering, and cross-model checks | [Guide](parametric_filtering/README.md) |
-| `evaluation/` | Generator inference, equivalence judging, and diagnostic scoring | [Guide](evaluation/README.md) |
+| `evaluation/` | Direct released-JSON inference, explicit judging, and coverage-aware scoring | [Guide](evaluation/README.md) |
 
 <details>
 <summary><strong>Show the complete repository structure</strong></summary>
@@ -236,13 +232,17 @@ multihop-rag-benchmark/
 |   |-- distractor_selection/       # Answer-screened distractors
 |   |-- dataset_validation/         # Gold evidence and answer checks
 |   |-- multihop_construction/      # Recursive 1-4 hop chains
-|   `-- context_formation/          # Controlled A/B document arrangements
+|   `-- context_formation/          # Controlled A/B contexts and released JSON adapter
 |-- parametric_filtering/
 |   |-- baseline_calibration/       # PKS baseline scores
 |   |-- pks_filtering/              # Question-level screening
 |   |-- validation/                 # Reference-model checks
 |   `-- pks_core.py                 # Shared score/classification logic
+|-- rag_utils/                      # Lossless I/O, checkpoints, Gemini transport
+|-- tools/                          # Dataset download and environment checks
 |-- evaluation/
+|   |-- evaluate_dataset.py         # Download/read JSON -> answers -> judging -> metrics
+|   |-- run_dataset.py              # Direct-JSON generation and safe resume
 |   |-- run_inference.py            # Inference across fixed contexts
 |   |-- providers.py                # API and local model backends
 |   |-- prompting.py                # Grounded QA prompts
@@ -260,8 +260,15 @@ multihop-rag-benchmark/
 
 ## Supplementary material
 
-[**Supplementary Material (PDF)**](Supplementary%20Material.pdf) provides worked multi-hop examples, full experimental details, dataset statistics, PKS calibration and robustness checks, prompts, model settings, human validation, position and context ablations, statistical analyses, live-retrieval validation, chain completion, and cross-domain replication.
-When an official publication or preprint URL is available, link it here and add the canonical BibTeX entry (or a `CITATION.cff` file) for easy reuse.
+[**Supplementary Material (PDF)**](Supplementary%20Material.pdf) provides worked multi-hop examples, dataset statistics, PKS calibration and robustness checks, full prompts and model settings, human validation, statistical analyses, live-retrieval validation, chain completion, and cross-domain replication. It also documents supplementary experiments that are separate from the core dataset-generation and evaluation code.
+
+## Citation
+
+If you use this benchmark or its code in research, please cite the accompanying manuscript:
+
+**Syed Mahbubul Huq, Chris Child, Tillman Weyde, and Pranava Madhyastha.** *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators.*
+
+When reusing source gameplay data or simulation code, also follow the citation and licensing terms of [QANTA Diplomacy](https://sites.google.com/view/qanta/projects/diplomacy) and [GoodStartLabs AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy).
 
 ---
 

@@ -1,4 +1,3 @@
-# API model inference and Gemini 2.5 Pro answer judging
-openai>=1.40
-google-genai>=1.0
-# Optional for local open-weight inference: install torch, transformers, accelerate
+requests>=2.32,<3
+openai>=1.0,<3
+# Optional local models: install ../requirements-local-models.txt from repo root.

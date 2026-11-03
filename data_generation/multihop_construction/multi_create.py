@@ -2,7 +2,12 @@ import os
 import json
 import re
 import asyncio
-import nest_asyncio
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from rag_utils.gemini import Model
+from rag_utils.io import atomic_json, read_json
+from rag_utils.tables import read_records
 import logging
 import random
 from typing import List, Tuple, Optional, Dict, Any
@@ -10,8 +15,7 @@ from typing import List, Tuple, Optional, Dict, Any
 import pandas as pd
 from tqdm.asyncio import tqdm
 from dotenv import load_dotenv
-import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
+
 
 # -----------------------------------------------------
 # 1) Configuration & Setup
@@ -20,7 +24,7 @@ load_dotenv()
 
 # --- API KEYS ---
 # Credentials are injected through environment variables, never source code.
-API_KEYS = [s.strip() for s in (os.getenv("GEMINI_API_KEYS") or os.getenv("GEMINI_API_KEY") or "").split(",") if s.strip()]
+API_KEYS = [s.strip() for s in (os.getenv("GEMINI_API_KEYS") or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").split(",") if s.strip()]
 
 # --- FILES ---
 INPUT_JSON = "rag_benchmark_gold_validated_new.json"          # Input dictionary: {question: item_data}
@@ -31,7 +35,7 @@ ERROR_FILE = "000_new_multihop_errors.json"
 # --- TUNING ---
 SAVE_INTERVAL = 5                      # Save progress every 5 items
 WORKERS_PER_KEY = 5                    # 3 workers * 2 keys = 6 concurrent requests
-MODEL_NAME = "gemini-2.5-flash"        # Fast, cheap, 1M token context
+MODEL_NAME = "gemini-2.5-flash"        # Preserved model identifier; verify access before running
 HOP_MAX = 4                            # Generate chains up to n=4
 
 # --- LOGIC SETTINGS ---
@@ -40,36 +44,20 @@ DOC_TRIES_PER_HOP = 8                  # How many global docs to scan for a matc
 GEN_TRIES_PER_DOC = 2                  # How many times to retry generation if it fails
 
 # --- CONTEXT WINDOW ---
-# Using 30k chars (~7k tokens) to ensure Gemini Flash sees full context.
-DOC_SNIPPET_CHARS = 30000              
-VERIFY_DOC_SNIPPET_CHARS = 30000
+# Preserve full documents. Provider errors are rejected, not hidden by clipping.
+DOC_SNIPPET_CHARS = None              
+VERIFY_DOC_SNIPPET_CHARS = None
 
 # --- LOGGING ---
 # Using utf-8 encoding for file handler to prevent emoji crashes on Windows
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler("process_log.txt", mode="w", encoding='utf-8'), 
-        logging.StreamHandler()
-    ]
-)
-
-# --- SAFETY SETTINGS ---
-# Disable blocking so the model doesn't refuse war/politics/history content
-SAFETY_SETTINGS = {
-    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-}
+logging.getLogger(__name__).addHandler(logging.NullHandler())
+SAFETY_SETTINGS = {}
 
 # -----------------------------------------------------
 # 2) Utilities
 # -----------------------------------------------------
 def save_json(data: Any, filename: str) -> None:
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    atomic_json(filename, data)
 
 def strip_json_fence(text: str) -> str:
     return re.sub(r"```json|```", "", text or "").strip()
@@ -78,11 +66,7 @@ def normalize_space(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "")).strip()
 
 def contains_entity(doc: str, ent: str) -> bool:
-    # Basic check: is the entity string in the doc?
-    # We add boundaries or checks to avoid partial matches (e.g. "US" inside "USE")
-    if len(ent) < 4:
-        return re.search(rf"\b{re.escape(ent)}\b", doc, flags=re.IGNORECASE) is not None
-    return ent.lower() in doc.lower()
+    return bool(ent and re.search(r"(?<!\w)" + re.escape(ent.strip()) + r"(?!\w)", doc, re.I))
 
 def safe_json_loads(s: str) -> Optional[Any]:
     try:
@@ -93,31 +77,13 @@ def safe_json_loads(s: str) -> Optional[Any]:
 # -----------------------------------------------------
 # 3) Data Loading
 # -----------------------------------------------------
-def load_global_docs(filepath: str) -> List[str]:
-    print(f"📂 Loading global documents from {filepath}...")
-    try:
-        df = pd.read_excel(filepath)
-        
-        # Smart column detection
-        col = next((c for c in df.columns if c.lower() in ['document', 'text', 'content']), "Document")
-        
-        if col not in df.columns:
-            raise ValueError(f"Could not find document column. Found: {df.columns.tolist()}")
-
-        docs = (
-            df[col]
-            .dropna()
-            .astype(str)
-            .map(lambda x: x.strip())
-            .loc[lambda s: s.str.len() > 0]
-            .unique()
-            .tolist()
-        )
-        print(f"✅ Loaded {len(docs)} global documents.")
-        return docs
-    except Exception as e:
-        print(f"❌ Error loading Excel: {e}")
-        return []
+def load_global_docs(filepath: str, column: str = "Document") -> List[str]:
+    # Explicit Document priority is independent of workbook column order.
+    from rag_utils.tables import read_records
+    rows = read_records(filepath)
+    if not rows or any(not isinstance(r.get(column), str) or not r[column].strip() for r in rows):
+        raise ValueError("Global documents require a nonempty " + column + " column; never substitute raw text")
+    return list(dict.fromkeys(r[column].strip() for r in rows))
 
 # -----------------------------------------------------
 # 4) Gemini Wrapper (Robust Retry Logic)
@@ -170,12 +136,9 @@ async def extract_entities_topk(question: str, model, k: int = ENTITY_CANDIDATES
         data = safe_json_loads(strip_json_fence(out))
         if isinstance(data, list):
             # Clean up extraction
-            return [str(x).strip() for x in data if len(str(x)) > 2][:k]
+            return [x.strip() for x in data if isinstance(x, str) and len(x.strip()) > 2 and contains_entity(question, x.strip())][:k]
 
-    # Fallback heuristic: Capitalized words if API fails
-    tokens = re.findall(r"\b[A-Z][a-zA-Z\-]{3,}\b", question)
-    stop = {"Where", "Which", "What", "When", "Who", "Why", "How"}
-    return list(set(t for t in tokens if t not in stop))[:k]
+    return []  # Failed extraction is not treated as a valid generated hop.
 
 def select_linking_docs(
     entities: List[str],
@@ -247,7 +210,7 @@ Your goal is to rewrite a question by replacing a specific name (Bridge Entity) 
     
     try:
         data = safe_json_loads(strip_json_fence(out))
-        if isinstance(data, dict) and "new_question" in data:
+        if isinstance(data, dict) and all(isinstance(data.get(k), str) and data[k].strip() for k in ("new_question", "description", "reasoning_step")):
             return data
     except:
         return None
@@ -270,47 +233,47 @@ async def can_answer_with_docs(question: str, docs: List[str], answer: str, mode
     If no, return JSON: {{"can_answer": false}}
     """
     out = await safe_generate(model, prompt)
-    if not out: return (False, None)
+    if not out: raise RuntimeError("Answerability request failed")
 
     data = safe_json_loads(strip_json_fence(out))
-    if not isinstance(data, dict): return (False, None)
+    if not isinstance(data, dict) or type(data.get("can_answer")) is not bool:
+        raise ValueError("Invalid answerability response")
+    if data["can_answer"] and (not isinstance(data.get("answer"), str) or not data["answer"].strip()):
+        raise ValueError("Answerability=true requires an answer")
+    return (data["can_answer"], data.get("answer"))
 
-    return (bool(data.get("can_answer", False)), data.get("answer"))
-
-async def verify_russian_doll_hop(
-    prev_question: str,
-    new_question: str,
-    prev_docs: List[str],
-    new_doc: str,
-    bridge_entity: str,
-    answer: str,
-    model
-) -> Tuple[bool, str]:
-    """
-    Ensures true multi-hop dependency.
-    """
-    if not new_question: return (False, "empty")
-    
-    # 1. Check if Entity Name was actually removed
-    if bridge_entity and bridge_entity.lower() in new_question.lower():
-        return (False, "entity_not_removed")
-
-    # 2. Check if Answer leaked
-    if answer and str(answer).strip().lower() in new_question.lower():
-        return (False, "answer_leaked")
-
-    # 3. Must be answerable with ALL docs
+async def verify_russian_doll_hop(prev_question: str, new_question: str, prev_docs: List[str],
+                                 new_doc: str, bridge_entity: str, answer: str, model) -> Tuple[bool, str]:
+    """Structural replacement, gold-answer agreement, and leave-one-document-out checks."""
+    import re
+    import unicodedata
+    def norm(text):
+        s = unicodedata.normalize("NFKC", str(text or "")).casefold()
+        return " ".join(re.sub(r"[^\w\s]", " ", s).split())
+    def present(entity, text):
+        return bool(entity and re.search(r"(?<!\w)" + re.escape(entity.strip()) + r"(?!\w)", text, re.I))
+    if not isinstance(new_question, str) or not new_question.strip(): return False, "empty"
+    if not present(bridge_entity, prev_question): return False, "bridge_absent_from_previous_question"
+    if present(bridge_entity, new_question): return False, "entity_not_removed"
+    variants = [x.strip() for x in str(answer).split(",") if x.strip()]
+    if not variants: return False, "missing_gold_answer"
+    if any(present(a, new_question) for a in variants): return False, "answer_leaked"
+    if new_doc in prev_docs or not new_doc: return False, "invalid_new_document"
     all_docs = prev_docs + [new_doc]
-    can_all, ans_all = await can_answer_with_docs(new_question, all_docs, answer, model)
-    if not can_all:
-        return (False, "not_answerable_with_all_docs")
-
-    # 4. Must NOT be answerable with ONLY OLD docs (Logic check)
-    can_prev, _ = await can_answer_with_docs(new_question, prev_docs, answer, model)
-    if can_prev:
-        return (False, "answerable_without_new_doc")
-
-    return (True, "ok")
+    try:
+        can_all, ans_all = await can_answer_with_docs(new_question, all_docs, answer, model)
+        if not can_all: return False, "not_answerable_with_all_docs"
+        if norm(ans_all) not in {norm(a) for a in variants}: return False, "returned_answer_disagrees_with_gold"
+        can_prev, _ = await can_answer_with_docs(new_question, prev_docs, answer, model)
+        if can_prev: return False, "answerable_without_new_doc"
+        # Also reject shortcuts that do not need one of the earlier gold documents.
+        for i in range(len(prev_docs)):
+            reduced = all_docs[:i] + all_docs[i+1:]
+            can_reduced, _ = await can_answer_with_docs(new_question, reduced, answer, model)
+            if can_reduced: return False, "answerable_without_previous_gold_" + str(i)
+    except Exception:
+        return False, "answerability_check_failed"
+    return True, "ok"
 
 # -----------------------------------------------------
 # 8) Chain Processing (The main logic loop)
@@ -319,12 +282,16 @@ async def process_chain(item_key: str, item_data: Dict[str, Any], global_docs: L
     original_q = item_key
     answer = item_data.get("golden_answer")
     base_doc = item_data.get("golden_document_text")
+    if not all(isinstance(v, str) and v.strip() for v in (original_q, answer, base_doc)):
+        raise ValueError("Missing base question, answer or gold document")
 
     # Randomly sampled, answer-screened distractors (no ranked/noise-based pools).
     distractor_pool = item_data.get("distractors", [])[:]
     if not isinstance(distractor_pool, list) or len(distractor_pool) != 10:
         raise ValueError("Expected exactly 10 answer-screened random distractors for n1")
 
+    if len(set(distractor_pool + [base_doc])) != 11:
+        raise ValueError("Base context must contain 11 distinct documents")
     used_docs = set([base_doc])
     current_q = original_q
     golden_docs = [base_doc]
@@ -333,6 +300,7 @@ async def process_chain(item_key: str, item_data: Dict[str, Any], global_docs: L
     decomposition = []
 
     result = {
+        "source_id": item_data.get("Serial", item_data.get("source_id")),
         "original_question": original_q,
         "answer": answer,
         "decomposition": decomposition,
@@ -371,6 +339,9 @@ async def process_chain(item_key: str, item_data: Dict[str, Any], global_docs: L
                 new_q = normalize_space(gen_data["new_question"])
                 desc = gen_data["description"]
                 step = gen_data["reasoning_step"]
+                if normalize_space(desc).casefold() not in new_q.casefold():
+                    last_reason = "description_not_used_in_question"
+                    continue
 
                 # Verify
                 ok, reason = await verify_russian_doll_hop(
@@ -429,8 +400,7 @@ async def worker(worker_id: str, api_key: str, queue: asyncio.Queue, global_docs
                  results: List[Dict[str, Any]], errors: List[Dict[str, Any]],
                  save_lock: asyncio.Lock, pbar):
     """Persistent worker to process queue items."""
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(MODEL_NAME)
+    model = Model(MODEL_NAME, key=api_key)
 
     logging.info(f"[Worker] {worker_id} ready.")
 
@@ -459,15 +429,15 @@ async def worker(worker_id: str, api_key: str, queue: asyncio.Queue, global_docs
 
 async def main():
     # 1. Load Data
+    if not API_KEYS or WORKERS_PER_KEY < 1: raise ValueError("At least one API key and worker are required")
     global_docs = load_global_docs(GLOBAL_DOCS_FILE)
-    if not global_docs: return
+    if not global_docs: raise ValueError("Empty document corpus")
 
     try:
         with open(INPUT_JSON, "r", encoding="utf-8") as f:
             raw_data = json.load(f)
     except FileNotFoundError:
-        print(f" Input file {INPUT_JSON} not found.")
-        return
+        raise FileNotFoundError("Input base-QA JSON not found") from None
 
     # 2. Setup Queue
     queue = asyncio.Queue()
@@ -495,9 +465,13 @@ async def main():
     await asyncio.gather(*workers, return_exceptions=True)
     pbar.close()
 
+    # Stable source order, independent of worker completion order.
+    order = {q: i for i, q in enumerate(raw_data)}
+    results.sort(key=lambda r: order[r["original_question"]])
     # Final Save
     save_json(results, OUTPUT_FILE)
     save_json(errors, ERROR_FILE)
+    if errors: raise RuntimeError("Some construction requests failed; inspect the error output")
     print(f"\n Processing Complete!")
 
 if __name__ == "__main__":
@@ -515,9 +489,4 @@ if __name__ == "__main__":
     MODEL_NAME, WORKERS_PER_KEY = args.model, args.workers_per_key
     if not API_KEYS:
         parser.error("Set GEMINI_API_KEY or GEMINI_API_KEYS in your environment")
-    try:
-        asyncio.run(main())
-    except RuntimeError:
-        nest_asyncio.apply()
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main())
+    asyncio.run(main())

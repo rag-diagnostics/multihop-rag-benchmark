@@ -15,9 +15,15 @@ def aliases(golden_answer: str) -> list[str]:
     return [x.strip() for x in str(golden_answer).split(",") if x.strip()]
 
 
-def exact_match(pred: str, gold: str) -> bool:
-    p = normalize(pred)
-    return bool(p) and any(p == normalize(x) for x in aliases(gold))
+def exact_match(pred: str, gold: str, policy: str = "normalized") -> bool:
+    if policy == "legacy":
+        normalizer = lambda x: str(x or "").strip().lower().rstrip(" \t\n\r.,!?;:")
+    elif policy == "normalized":
+        normalizer = normalize
+    else:
+        raise ValueError("Unknown exact-match policy")
+    p = normalizer(pred)
+    return bool(p) and any(p == normalizer(x) for x in aliases(gold))
 
 
 def command_following(raw_response: str) -> bool:

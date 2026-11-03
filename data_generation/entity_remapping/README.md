@@ -1,40 +1,11 @@
-# Entity remapping
+# Entity Remapping
 
-## What it does
+Retains the source token-wise remapping, season/year changes and WordNet synonym probability. Source rows must not already contain QA or chains. Summary and Document are updated together; maps and hashes are recorded.
 
-- Shuffles fixed pools of replacement countries/adjectives and cities and creates a run-level mapping.
-- Replaces the configured named entities and regions, transforms season names, and replaces recognised four-digit numbers with generated AD/BC dates.
-- Uses WordNet to optionally substitute nouns and verbs with probability **0.1**.
-- Applies the transformation to the Excel column **`Summary`**, retaining other workbook columns.
-
-
+Run from the repository root:
 
 ```bash
-python -m pip install -r requirements.txt
-python -m spacy download en_core_web_sm
-python -m nltk.downloader wordnet
+python -m data_generation.entity_remapping.remap_entities --input work/narratives.json --output work/transformed.json --seed 42
 ```
 
-The spaCy language model and NLTK WordNet corpus are external resources and are not bundled in the repository.
-
-## Input and output (historical names retained)
-
-| File/column | Role |
-|---|---|
-| `final_dataset.xlsx` | Create the dataset and use it for entity transformation |
-| `Summary` | Required column containing original narrative text |
-| `0modified_final_dataset_004.xlsx` | Output workbook with transformed `Summary` values |
-
-Put `final_dataset.xlsx` in your current working directory and run:
-
-```bash
-python remap_entities.py
-```
-
-You can alternatively open `remap_entities.ipynb` and run its single cell with the same working directory. Do not execute **both** if you intend to compare their outputs: the unseeded random remapping will vary across runs.
-
-
-
-## Relation to the paper
-
-This covers the **implementation of Section 3.2, Randomised Entity Transformation**.
+Use the [complete construction guide](../../docs/BUILD_DATASET.md) for dependencies, model options and stage ordering. The orchestrator `python -m data_generation.run_pipeline` checks the full sequence. JSON is canonical for long text; exporting oversized Excel cells fails explicitly. Existing notebook entry points import the Python implementation. See [the changes](../../docs/FIXES.md) for intentional validation changes and historical-parity boundaries.

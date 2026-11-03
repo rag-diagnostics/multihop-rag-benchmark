@@ -1,3 +1,5 @@
+> The already released 528-chain benchmark is already filtered. Skip this directory when evaluating that file. For a new benchmark, see [the construction guide](../docs/BUILD_DATASET.md).
+
 # Parametric Knowledge Filtering
 
 This directory implements the no-context Parametric Knowledge Score (PKS) calibration and instance filtering procedure described in Section 3.4 of **A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators**.
@@ -43,9 +45,10 @@ Model inference requires the reference model checkpoint. The main PKS reference 
 
 ## Required inputs
 
-The three calibration files are:
+The three calibration files must be JSON arrays of objects with string `question` and `answer` fields:
 
 ```text
+calibration_data/
   7common_knowledge.json
   7plausible_but_false.json
   7nonsense_knowledge.json
@@ -94,7 +97,7 @@ The output directory contains:
 - `pks_question_decisions.json` — PKS scores, Z-distances and decisions
 - `pks_filter_summary.json` — question and row counts
 
-The original filtering behaviour keeps a question when inference fails (`--on-error keep`). Such cases are explicitly recorded in `pks_question_decisions.json`. To require every question to receive a valid PKS score, use `--on-error error`.
+The default is now `--on-error error`: any failed score stops filtering. Explicit `--on-error keep` reproduces the earlier fail-open behavior but is not used by the corrected construction pipeline. Successful calibrations are published as a complete directory with model and score checksums; a nonempty calibration output directory is never overwritten. Old score files without a calibration manifest require explicit `--allow-legacy-calibration`, which does not verify their provenance.
 
 ### 3. Independently verify the Qwen decisions
 
@@ -138,3 +141,10 @@ python parametric_filtering/validation/para13.py \
 
 Each reference model uses its own score distribution; Qwen's scores can be reused from Step 1. This optional script compares calibration distributions, not full instance-level filter agreement.
 
+## Test
+
+```bash
+python -m unittest discover -s parametric_filtering/tests -v
+```
+
+The tests cover PKS arithmetic, baseline statistics, Z-score classification, question grouping, the retained/removed decision rule, fail-safe handling and verification. They do not download models or require a GPU.

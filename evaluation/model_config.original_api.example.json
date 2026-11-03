@@ -1,0 +1,21 @@
+{
+  "models": {
+    "gemini-flash-lite": {
+      "provider": "google_genai",
+      "model_id": "gemini-2.5-flash-lite",
+      "api_key_env": "GEMINI_API_KEY",
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "max_tokens": 50
+    },
+    "qwen-api": {
+      "provider": "openai_compatible",
+      "model_id": "Qwen/Qwen2.5-7B-Instruct",
+      "base_url": "https://api.deepinfra.com/v1/openai",
+      "api_key_env": "DEEPINFRA_TOKEN",
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "max_tokens": 50
+    }
+  }
+}

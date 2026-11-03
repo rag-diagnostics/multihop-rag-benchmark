@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from rag_utils.gemini import generate_text
+from rag_utils.io import atomic_json
 import os
 import json
 import asyncio
@@ -8,7 +13,7 @@ from tqdm.asyncio import tqdm
 
 # ---------------- CONFIG ----------------
 # Load credentials from environment only. Never place keys in code or logs.
-API_KEYS = [s.strip() for s in (os.getenv("GEMINI_API_KEYS") or os.getenv("GEMINI_API_KEY") or "").split(",") if s.strip()]
+API_KEYS = [s.strip() for s in (os.getenv("GEMINI_API_KEYS") or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").split(",") if s.strip()]
 
 MODEL_NAME = "gemini-2.0-flash"
 CONCURRENT_LIMIT = 30  # overall in-flight cap (parallel across questions)
@@ -23,27 +28,21 @@ sem = asyncio.Semaphore(CONCURRENT_LIMIT)
 
 # ---------------- REST CALL ----------------
 def call_gemini_rest_api(prompt: str, api_key: str) -> str:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent"
-    headers = {"Content-Type": "application/json", "x-goog-api-key": api_key}
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.0, "maxOutputTokens": 300},
-    }
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=60)
-        response.raise_for_status()
-        result = response.json()
-        try:
-            return result["candidates"][0]["content"]["parts"][0]["text"]
-        except (KeyError, IndexError):
-            return ""
-    except Exception as e:
+        return generate_text(MODEL_NAME, prompt, key=api_key, max_tokens=2048, json_output=True)
+    except Exception:
         return "__ERROR__:request_failed"
 
 
+_key_index = 0
+
 async def get_next_key() -> str:
-    async with key_lock:
-        return next(KEY_CYCLE)
+    global _key_index
+    keys = API_KEYS or [os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")]
+    if not keys or not all(keys): raise RuntimeError("Set GEMINI_API_KEY or GOOGLE_API_KEY")
+    key = keys[_key_index % len(keys)]
+    _key_index += 1
+    return key
 
 
 # ---------------- TEXT NORMALIZATION ----------------
@@ -74,7 +73,7 @@ def golden_variants_from_field(golden_answer_field: str) -> list[str]:
 def is_verbatim_in_doc(span: str, doc_text: str) -> bool:
     if not span:
         return False
-    return norm(span) in norm(doc_text)
+    return bool(re.search(r"(?<!\w)" + re.escape(norm(span)) + r"(?!\w)", norm(doc_text)))
 
 
 # ---------------- JSON EXTRACTION (FIX) ----------------
@@ -180,8 +179,8 @@ QUESTION:
     if verdict not in {"PASS", "FAIL"}:
         return {"ok": False, "reason": "bad_schema_verdict", "model_raw": resp}
 
-    if not isinstance(other, list):
-        other = []
+    if not isinstance(other, list) or not all(isinstance(x, str) for x in other) or not isinstance(matched, str) or not isinstance(justification, str):
+        return {"ok": False, "reason": "invalid_schema", "model_raw": resp}
 
     # Hard enforcement: matched must be verbatim & 1-3 words
     matched_ok = bool(matched) and is_verbatim_in_doc(matched, gold_doc) and word_count_1_to_3(matched)
@@ -198,7 +197,7 @@ QUESTION:
         if not word_count_1_to_3(x):
             continue
         xn = norm(x)
-        if not xn or xn == norm(matched):
+        if not xn or xn in gold_norm_set:
             continue
         if xn in seen_other:
             continue
@@ -258,6 +257,8 @@ QUESTION:
 
 # ---------------- DRIVER ----------------
 async def process_dataset(json_data: dict):
+    global sem, key_lock, KEY_CYCLE
+    sem, key_lock, KEY_CYCLE = asyncio.Semaphore(CONCURRENT_LIMIT), asyncio.Lock(), cycle(API_KEYS)
     cleaned = {}
     errors = []
 
@@ -318,13 +319,12 @@ async def process_dataset(json_data: dict):
         short_q = (q[:70] + "..") if len(q) > 70 else q
         tqdm.write(f"[{done}/{total}] {status} | Q: {short_q}")
 
-    return cleaned, errors
+    return {q: cleaned[q] for q in questions if q in cleaned}, errors
 
 
 def main():
     if not os.path.exists(INPUT_JSON_FILE):
-        print(f"ERROR: '{INPUT_JSON_FILE}' not found.")
-        return
+        raise FileNotFoundError(INPUT_JSON_FILE)
 
     with open(INPUT_JSON_FILE, "r", encoding="utf-8") as f:
         json_data = json.load(f)
@@ -334,11 +334,10 @@ def main():
 
     cleaned, errors = asyncio.run(process_dataset(json_data))
 
-    with open(OUTPUT_JSON_FILE, "w", encoding="utf-8") as f:
-        json.dump(cleaned, f, indent=2, ensure_ascii=False)
-
-    with open(OUTPUT_ERRORS_JSON_FILE, "w", encoding="utf-8") as f:
-        json.dump(errors, f, indent=2, ensure_ascii=False)
+    atomic_json(OUTPUT_JSON_FILE, cleaned)
+    atomic_json(OUTPUT_ERRORS_JSON_FILE, errors)
+    if any(e.get("reason") in {"api_error", "json_parse_error", "bad_schema_verdict", "invalid_schema"} for e in errors):
+        raise RuntimeError("Gold validation had API/schema errors; do not treat the partial file as a finished dataset")
 
     print("\n" + "=" * 40)
     print("GOLD VALIDATION COMPLETE")

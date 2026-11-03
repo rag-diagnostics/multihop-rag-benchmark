@@ -1,0 +1,4 @@
+# Core released-dataset evaluation (local models and construction are optional).
+requests>=2.32,<3
+openai>=1.0,<3
+gdown>=5.2,<6

@@ -1,37 +1,17 @@
-# ECIR Section 3.7: context formation 
-## Conditions
+# Controlled eleven-document contexts
 
-| Condition | Hop(s) | Positioning |
-|---|---|---|
-| A1 | n1 | Single gold document first (position 1) |
-| A2 | n1 | Single gold document in middle (position 6) |
-| A3 | n1 | Single gold document last (position 11) |
-| B1 | n2-n4 | Gold documents grouped centrally, canonical chain order |
-| B2 | n2-n4 | Gold documents grouped centrally, reverse chain order |
-| B3 | n2-n4 | All gold and distractor documents shuffled together |
+A1/A2/A3 place the single gold document first/middle/last. At depths 2-4, B1 places the gold block centrally in canonical order, B2 reverses the block, and B3 shuffles gold and distractors with the recorded seed. Each chain yields 12 contexts and every context has 11 distinct documents.
 
-Every condition has exactly **11 documents**. Gold/distractor counts are:
-1+10, 2+9, 3+8, and 4+7 for hop depths 1, 2, 3, and 4.
+For the released 528-chain JSON, use the [direct evaluator](../../evaluation/README.md). It calls these positioning functions in memory. **You do not need to export context files or create shards.** Stored relevant/irrelevant pools and their length-matching policies are selected explicitly in the evaluator.
 
-
-## Usage
-
+The standalone interfaces remain for compatibility:
 
 ```bash
-python data_generation/context_formation/construct_contexts.py \
-  --input data_generation/work/filtered_multihop.json \
-  --output data_generation/work/contexts_11doc.json \
-  --seed 42
+python data_generation/context_formation/construct_contexts.py --input work/multihop_validated.json --output work/contexts.json --seed 42
 ```
 
-The code reads a JSON list of chains with fields:
+This expects the newly generated single-pool schema (`context_distractors` and higher-hop `context_distractors_remaining`). `prepare_released_dataset.py` is the earlier export adapter for the two-pool release; its shard feature is optional. It does not perform the full quality audit or the explicit length-matching policies in the new direct runner, so its output is not the default execution path.
 
-- Each entry: `original_question`, `answer`, `decomposition`, `hops`
-- `hops.n1`: `question`, `golden_docs` (1 document), `context_distractors` (10)
-- `hops.n2`, `.n3`, `.n4`: `question`, `all_golden_docs` (2/3/4),
-  `context_distractors_remaining` (9/8/7)
+The original positioning function bodies are retained in `original_singlehop.py` and `original_multihop.py`. The wrapper uses stable seed derivation; this is not a recovery of unrecorded historical Python `hash()` seeds. The paper's A/B labels refer to hop placement/formation, while some older notebook TestA/TestB labels referred to different distractor pools. They are not interchangeable naming systems.
 
-It writes a JSON list containing one record per entry x hop x condition:
-`source_entry_index`, `question`, `answer`, `hop`, `configuration`,
-`documents` (ordered), `gold_positions_1_based`, `shuffle_seed` (B3 only),
-`decomposition`, and `original_question`.
+Placement checks do not establish semantic chain validity. The direct evaluator records audit warnings and selected source identities. See [FIXES.md](../../docs/FIXES.md).
