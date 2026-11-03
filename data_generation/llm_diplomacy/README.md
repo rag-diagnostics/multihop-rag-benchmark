@@ -3,7 +3,7 @@
 
 This subproject documents the **LLM-vs-LLM Diplomacy game-simulation stage** used as a source for part of the multi-hop RAG benchmark described in *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*.
 
-> **Licensing checkpoint:** The archived upstream engine is from [GoodStartLabs/AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy). Its [non-commercial licence](https://github.com/GoodStartLabs/AI_Diplomacy/blob/main/LICENSE) contains an additional restriction on gathering datasets/telemetry for AI/ML systems. Clarify permission with the rights holder before using or redistributing this engine for benchmark dataset generation. See [UPSTREAM_AND_LICENSING.md](docs/UPSTREAM_AND_LICENSING.md). This package does not include the engine or its prompts.
+> **Licensing checkpoint:** The archived upstream engine is from [GoodStartLabs/AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy). 
 
 ## What is in this directory?
 
