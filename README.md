@@ -45,17 +45,40 @@ This repository provides the dataset-construction, parametric knowledge filterin
 | Expected answers | Short, document-grounded answers of 1-3 words |
 | Scoring | Deterministic generation, exact match, semantic equivalence, and diagnostic metrics |
 
-## Dataset download
 
-The **PKS-filtered benchmark (528 question chains) used in the paper** is available as a downloadable JSON file:
+## 📥 Download the Benchmark Dataset
 
-**[Download the 528-instance benchmark from Google Drive](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing)**
+The **528-instance, PKS-filtered benchmark** is publicly available:
+**[📦 Download the complete JSON dataset from Google Drive](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing)**. 
+https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing
 
 The file contains each chain's `original_question`, gold `answer`, reasoning `decomposition`, and the `hops` (`n1`-`n4`) with gold documents and two stored distractor pools (`relevant` and `irrelevant`). The benchmark is **already generated and PKS-filtered**. You can evaluate it directly without rerunning narrative generation, multi-hop construction, or PKS calibration.
 
 Save the downloaded file as `data/benchmark_528.json`.
 
 
+## 🔍 Worked Example: Where Does Four-Hop Reasoning Break?
+
+Consider a question that becomes progressively harder as entities are replaced by descriptive clues. All four versions ask which country proposed coordination to avoid early conflicts.
+
+| Depth | Question (shortened for readability) |
+|---|---|
+| **1 hop** | What country approached **Gabon**? |
+| **2 hops** | What country approached **the power that recently captured Belgium**? |
+| **3 hops** | What country approached **the power that captured the territory Mongolia was preparing to transfer to Gabon**? |
+| **4 hops** | What country approached **the power that captured the territory that the power emphasizing regional influence and security was preparing to transfer to Gabon**? |
+
+**Clue resolution:** Mongolia → Belgium → Gabon → **Tunisia (correct answer)**
+
+| Model | Answer | Diagnosis |
+|---|---|---|
+| Gemma-4-31B | **Tunisia** ✅ | Complete reasoning chain |
+| Apertus-8B / Granite-8B | Gabon | Stops at step 3 |
+| Nemotron-9B | Mongolia | Stops at step 1 |
+
+This example illustrates how the framework identifies **which intermediate reasoning step a model may have failed to complete**, rather than measuring final-answer accuracy alone.
+
+📖 [Full questions, evidence and analysis — Supplementary Material, Appendix C](Supplementary%20Material.pdf)
 
 ## How it works
 
