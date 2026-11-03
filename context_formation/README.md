@@ -74,8 +74,3 @@ It writes a JSON list containing one record per entry x hop x condition:
 For a fully valid 4-hop chain, there are 12 output records: 3 single-hop and
 9 multi-hop configurations.
 
-You can run a source-only offline test:
-
-```bash
-python -m unittest discover -s data_generation/context_formation/tests -v
-```
