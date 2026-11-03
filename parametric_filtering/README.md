@@ -97,9 +97,8 @@ The output directory contains:
 - `pks_question_decisions.json` — PKS scores, Z-distances and decisions
 - `pks_filter_summary.json` — question and row counts
 
-The default is now `--on-error error`: any failed score stops filtering. Explicit `--on-error keep` reproduces the earlier fail-open behavior but is not used by the corrected construction pipeline. Successful calibrations are published as a complete directory with model and score checksums; a nonempty calibration output directory is never overwritten. Old score files without a calibration manifest require explicit `--allow-legacy-calibration`, which does not verify their provenance.
 
-### 3. Independently verify the Qwen decisions
+### 3. 
 
 ```bash
 python parametric_filtering/validation/para19.py \
@@ -112,11 +111,9 @@ python parametric_filtering/validation/para19.py \
   --output-dir parametric_filtering/outputs/verification
 ```
 
-The expected-count arguments assert the paper's reported 600 unique questions and 72 removed questions (528 retained). Omit these arguments for another dataset or run. The validator re-runs model scoring and checks the category assignments rather than simply comparing filenames.
 
-### 4. Reference-model calibration comparison (optional)
+### 4. Reference-model calibration comparison 
 
-Provide a JSON object mapping readable model names to checkpoint paths or Hugging Face model IDs. For example:
 
 ```json
 {
@@ -139,12 +136,4 @@ python parametric_filtering/validation/para13.py \
   --output-dir parametric_filtering/outputs/reference_models
 ```
 
-Each reference model uses its own score distribution; Qwen's scores can be reused from Step 1. This optional script compares calibration distributions, not full instance-level filter agreement.
 
-## Test
-
-```bash
-python -m unittest discover -s parametric_filtering/tests -v
-```
-
-The tests cover PKS arithmetic, baseline statistics, Z-score classification, question grouping, the retained/removed decision rule, fail-safe handling and verification. They do not download models or require a GPU.
