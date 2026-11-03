@@ -140,7 +140,7 @@ The experiments test **12 models** under a constant document budget.
 
 ## Evaluation and diagnostic metrics
 
-Models answer from the supplied documents in **1-3 words**. Select `legacy_short` to preserve the uploaded judging script, or `semantic_all` for the paper-described all-nonexact semantic check. The judge model is explicit; these policies can produce different scores.
+Models answer from the supplied documents in **1-3 words**. 
 
 | Metric | What it measures |
 | :-- | :-- |
