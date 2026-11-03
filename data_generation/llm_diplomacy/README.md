@@ -31,13 +31,7 @@ Model assignments were sampled across the seven Diplomacy powers (Austria, Engla
 
 The archived game runner's default `--simple_prompts true` selected the upstream `ai_diplomacy/prompts_simple` templates, not the larger `ai_diplomacy/prompts` tree. Its phase-summary option was **disabled**, so this is **not** the later Gemini 2.5 Pro narrative-conversion stage from the paper.
 
-## Quick start: read before running
-
-1. Review [licensing](docs/UPSTREAM_AND_LICENSING.md) and obtain appropriate permission where needed.
-2. Read [environment setup](docs/INSTALL_AND_USAGE.md) and the [API/local-server guide](docs/API_AND_CREDENTIALS.md).
-3. Acquire a compatible AI_Diplomacy checkout **separately**; the archived `.git` metadata recorded commit `287d845d4ccc8ae67d47ab5131199dfbd5aee532`. We have not verified that a fresh checkout of that commit exactly matches the archived working tree.
-4. When appropriate, start two local model servers and confirm their advertised model IDs.
-5. Generate a config file and **dry-run** the command before running any simulation:
+## Quick start: 
 
 ```bash
 cd data_generation/llm_diplomacy
