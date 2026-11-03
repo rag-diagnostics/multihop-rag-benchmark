@@ -64,19 +64,8 @@ This runs:
 
 `messages -> narratives -> entity remapping -> base QA -> Document alignment -> random screened distractors -> gold validation -> recursive multi-hop construction -> strict chain validation`
 
-The stage outputs and checkpoints are explicit JSON files. No stage replaces `Summary` with the unrelated raw `text` column. Remapping runs before any QA, and refuses assembled question/decomposition records. `Summary` and `Document` are kept aligned. The exact recovered remapping routine is retained, including its token-wise limitations; the seed/entity map is saved.
-
-The original recovered QA prompt still requests **1-2-word answers**, not the manuscript's 1-3-word limit. That prompt has not been silently edited. The validator accepts 1-3 words, so all accepted 1-2-word QA outputs fit it. Changing the prompt is a new experimental choice.
-
-Random distractors are sampled without replacement, excluding the gold document, duplicate texts, literal gold-answer variants, and model-answerable candidates. Operational errors are not treated as safe. A lack of ten safe candidates is a real data limitation: the pipeline never pads with duplicates or unverified generated text.
-
-A new hop must replace an entity actually in the previous question, use its descriptive clue, preserve the gold answer under full evidence, require the new document, and require each earlier gold document under leave-one-document-out model checks. These checks are stricter than the recovered script. They reduce invalid output but remain model-based checks; human review is still needed. Invalid chains are saved to a rejection report, not published as successful four-hop chains.
-
-Narrative and QA checkpoints are keyed by complete source/protocol identities. Repeated identical runs reuse completed outputs; changed input/model/prompt settings require a new directory. Source/model errors stop the pipeline. Do not remove checkpoints and overwrite old research data to force a resume.
-
 ## 4. Calibrate and apply PKS
 
-Without `--pks-model`, construction stops at `multihop_validated.json` and records `pks_applied: false`. It does **not** label that file as a final PKS-filtered benchmark.
 
 Supply the three original research calibration QA arrays (`question`, `answer` per record):
 
@@ -87,7 +76,6 @@ calibration_data/
   7nonsense_knowledge.json
 ```
 
-These inputs are not included in this code package. Toy test distributions are not valid replacements for the research calibration.
 
 ```bash
 python -m pip install -r requirements-local-models.txt
@@ -100,13 +88,9 @@ python parametric_filtering/pks_filtering/00_para14.py \
   --calibration-dir runs/pks_calibration --output-dir runs/construction/pks --on-error error
 ```
 
-The retained file is `runs/construction/pks/000_abl_filtered_unknowns.json`. The same reference model identifier must be used for scoring and calibration. A failed score aborts; it is not assigned to the unknown class. Alternatively, supply `--pks-model` and `--calibration-dir` to `run_pipeline` **from the first run**; after successful filtering that route writes `benchmark.json`. Changing PKS settings on an existing construction directory requires a new directory, or use the standalone filter above.
 
-The PKS formula and nearest absolute Z-distance are unchanged. Model-dependent scores, source populations, stronger validation, and stochastic outputs mean a new run need not retain exactly 528 records.
 
-## 5. Evaluate new chains
 
-Use the same direct evaluation command as for the release, but point `--dataset` to the new retained JSON and choose `--distractor-family random --length-policy none`. Supply the actual expected count or omit it. Do not mix a new generated benchmark with the historical release under the same run directory.
 
 ## Individual entry points
 
@@ -120,5 +104,3 @@ python -m data_generation.dataset_validation.validate_gold --input work/base.jso
 python -m data_generation.multihop_construction.multi_create --input work/gold.json --global-docs work/documents_qa.json --output work/chains.json --errors work/chain_errors.json
 python -m data_generation.multihop_construction.filter_multihop --input work/chains.json --output work/multihop_validated.json
 ```
-
-The orchestrator is preferred because it checks stage order and source identity. The notebook entry points import these Python modules rather than embedding a second divergent implementation.
