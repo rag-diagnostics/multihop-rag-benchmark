@@ -9,7 +9,7 @@ Download the [benchmark JSON](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xF
 ```bash
 python -m evaluation.evaluate_dataset \
   --dataset data/benchmark_528.json --expected-chains 528 \
-  --models evaluation/model_config.original_api.example.json \
+  --models evaluation/model_config.example.json \
   --only-model gemini-flash-lite --output-dir runs/test \
   --distractor-family irrelevant --length-policy legacy_word_min \
   --judge-model gemini-2.5-pro --judge-policy semantic_all \
