@@ -12,9 +12,7 @@ python -m spacy download en_core_web_sm
 python -m nltk.downloader wordnet omw-1.4
 ```
 
-Provide `GEMINI_API_KEY` or `GOOGLE_API_KEY` through the environment. Select model identifiers to which the project has access; there is no automatic model fallback. The narrative default is the recovered notebook's `gemini-2.5-flash`, QA is `gemini-2.5-pro`, validation is `gemini-2.0-flash`, and multi-hop generation is `gemini-2.5-flash`. Set different identifiers explicitly for a separate experiment. The manuscript's Pro narrative setting and source Flash setting must not be conflated.
-
-The canonical interchange is UTF-8 JSON containing stable `Serial` identifiers and full text. XLSX remains supported for safe-sized records, but exporting a string longer than 32,767 characters raises an error. No truncation, chunking, or artificial replacement data is performed. Once Excel has already lost text, the full original transcript must be recovered from source.
+Provide `GEMINI_API_KEY` or `GOOGLE_API_KEY` through the environment. Select model identifiers to which the project has access; there is no automatic model fallback. The narrative default is the recovered notebook's `gemini-2.5-flash`, QA is `gemini-2.5-pro`, validation is `gemini-2.0-flash`, and multi-hop generation is `gemini-2.5-flash`. 
 
 ## 1. Simulate games and extract messages
 
