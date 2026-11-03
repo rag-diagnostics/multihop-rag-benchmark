@@ -48,7 +48,7 @@ This repository provides the dataset-construction, parametric knowledge filterin
 
 ### 📦 Download the Benchmark Dataset
 
-🤗 **[Download the 528-Instance Benchmark on Hugging Face](https://huggingface.co/datasets/syedhuq/multihop-rag-benchmark)** · 🔗 **[Dataset DOI: 10.57967/hf/11390](https://doi.org/10.57967/hf/11392)** · ☁️ [Google Drive Mirror](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing)
+🤗 **[Download the 528-Instance Benchmark on Hugging Face](https://huggingface.co/datasets/syedhuq/multihop-rag-benchmark)** · 🔗 **[Dataset DOI: 10.57967/hf/11392](https://doi.org/10.57967/hf/11392)** · ☁️ [Google Drive Mirror](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing)
 
 The publicly released benchmark contains **528 PKS-filtered instances**, covering 1–4 reasoning hops, gold evidence, distractor documents, and reasoning decompositions. Download the JSON and follow the [Quick Start](#quick-start) to generate answers and evaluate models directly, without regenerating the dataset or rerunning PKS.
 
