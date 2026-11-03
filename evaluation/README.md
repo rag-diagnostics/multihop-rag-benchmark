@@ -2,7 +2,7 @@
 
 Evaluate the published **528-chain JSON directly**, without regenerating data, rerunning PKS, preparing separate context files, or sharding. The pipeline generates answers, judges them, and reports accuracy and diagnostics. See the [root quick start](../README.md#quick-start).
 
-## Quick start
+## Quick start 
 
 Download the [benchmark JSON](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing) to `data/benchmark_528.json`, configure the model IDs and credentials for your environment, and test two chains:
 
