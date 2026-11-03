@@ -93,7 +93,7 @@ Here, each $L$ is a summed token-level negative log-likelihood under a fixed ref
   <img src="assets/readme/controls.svg" alt="Six rows show A1-A3 single-hop gold-document placements and B1-B3 four-hop evidence ordering under eleven documents." width="100%" />
 </p>
 
-Each evaluation context contains exactly **11 documents**. This holds the document budget constant while increasing hop depth and varying gold-evidence position or ordering. The diagram above is schematic, **B3 shows one example** of randomised placement.
+Each evaluation context contains exactly **11 documents**. This holds the document budget constant while increasing hop depth and varying gold-evidence position or ordering. 
 
 | Hop depth | Gold documents | Distractors | Controlled conditions |
 | :--: | :--: | :--: | :-- |
@@ -102,7 +102,7 @@ Each evaluation context contains exactly **11 documents**. This holds the docume
 | 3 | 3 | 8 | B1: canonical, B2: reversed, B3: randomised |
 | 4 | 4 | 7 | B1: canonical, B2: reversed, B3: randomised |
 
-The context-formation code records document order, gold evidence positions, hop depth, configuration, and intermediate bridge entities. A complete 4-hop chain therefore yields **12 controlled evaluation contexts** (4 depths x 3 configurations).
+
 
 ## What the paper finds
 
@@ -116,7 +116,6 @@ The experiments test **12 models** under a constant document budget. The headlin
 | **Where do incorrect answers come from?** | Among single-hop failures, 97.7% are classified as *distracted* and 2.3% as *fabricated* (Supplementary Material, Table 2). |
 | **Where does a chain stop?** | The retained intermediate-entity trace identifies cases in which models output a bridge entity rather than the requested final answer. |
 
-See the paper's **Figure 2** for the model-by-hop accuracy heatmap and [Supplementary Material](Supplementary%20Material.pdf) for additional analyses and validation.
 
 ## Evaluation and diagnostic metrics
 
@@ -132,11 +131,10 @@ Models answer from the supplied documents in **1-3 words**. Select `legacy_short
 | **DISTRACTED** | Incorrect answer appearing in a distractor document |
 | **FABRICATED** | Incorrect answer absent from distractor documents under the selected lexical diagnostic |
 
-The decomposition trace is retained in output records for subsequent intermediate-entity inspection. The primary aggregator reports the metrics above; it does not infer a causal reasoning trace.
 
 ## Quick start
 
-The commands run from the repository root. Use Python 3.10+ and a fresh environment. The game engine has its own environment; it is not needed to evaluate the released dataset.
+The commands run from the repository root. Use Python 3.10+ and a fresh environment. The game engine has its own environment, it is not needed to evaluate the released dataset.
 
 ```bash
 git clone https://github.com/rag-diagnostics/multihop-rag-benchmark.git
@@ -147,7 +145,7 @@ python -m pip install -r requirements.txt
 python -m tools.check_environment
 ```
 
-On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1`. Multi-line examples below use Bash continuation characters; on PowerShell paste each command on one line.
+On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1`. Multi-line examples below use Bash continuation characters, on PowerShell paste each command on one line.
 
 ### 1. Download and validate the released dataset
 
@@ -162,9 +160,6 @@ A browser download is also supported: save the complete JSON at that path, then 
 
 ### 2. Choose the model and experimental settings
 
-Copy `evaluation/model_config.original_api.example.json` to a local configuration file and set the desired model identifiers. It contains connection examples, **not the full paper roster or verified current endpoints**. Supply the API keys through `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) and, when applicable, `DEEPINFRA_TOKEN`. Never put credentials in source code or JSON configurations.
-
-The example below uses **one model, two chains, the stored irrelevant pool, the original API script's word-estimated slot-length matching, and the uploaded short-answer judging rule**. The generator cap is explicitly 50. The supplementary protocol uses 15; select `--max-tokens 15` in a separate output directory when that is the protocol being run. The example judge is the paper's Gemini 2.5 Pro; matching a historical local run requires its actual judge identifier.
 
 ```bash
 python -m evaluation.evaluate_dataset \
@@ -178,28 +173,19 @@ python -m evaluation.evaluate_dataset \
   --dry-run
 ```
 
-A dry run validates inputs and plans requests. It does **not** generate answers or establish model endpoint availability. Remove `--dry-run` to execute generation, judging, and aggregation. For a full run, also remove `--sample-chains 2` and use a **new** output directory such as `runs/full_irrelevant`.
-
-The default `--audit-policy strict` stops on recorded chain/span warnings. To measure the original release **unchanged**, explicitly add `--audit-policy report` after examining the audit. That run retains all selected records and labels its outputs `requires_review`; it is not a repair of those records. See the [evaluation guide](evaluation/README.md) for settings, output fields, and separate stage commands.
+Remove `--dry-run` to execute generation, judging, and aggregation. For a full run, also remove `--sample-chains 2` and use a **new** output directory such as `runs/full_irrelevant`.
+See the [evaluation guide](evaluation/README.md) for settings, output fields, and separate stage commands.
 
 ### 3. Inspect results
 
-Each run directory contains `dataset_audit.json`, `run_manifest.json`, `generations.jsonl`, `judged.jsonl`, and `summary/evaluation_metrics.json`. Operational errors are retried by rerunning the same command and remain distinct from wrong answers. A changed dataset, generation protocol, or selected sample requires a new output directory. A changed judge configuration is detected and rejudged.
+Each run directory contains `dataset_audit.json`, `run_manifest.json`, `generations.jsonl`, `judged.jsonl`, and `summary/evaluation_metrics.json`. 
 
-A complete run schedules **12 contexts per chain per model per distractor family**: 6,336 requests for 528 complete chains and one model, before any judge calls. Running both stored families is two separately named runs; do not pool them implicitly.
+
 
 ### Building a new dataset instead
 
-The [construction guide](docs/BUILD_DATASET.md) covers game simulation, message extraction, source selection, narrative generation, transformation, QA, screened random distractors, validation, multi-hop construction, and PKS. JSON is the canonical long-text interchange format. The original prompts and transformation routines are retained where stated; strengthened validation and portability changes are listed in [the change record](docs/FIXES.md).
+The [construction guide](docs/BUILD_DATASET.md) covers game simulation, message extraction, source selection, narrative generation, transformation, QA, screened random distractors, validation, multi-hop construction, and PKS. 
 
-### Tests and verification
-
-```bash
-python -m pip install -r requirements-dev.txt
-python -m pytest -q
-```
-
-See [test coverage and execution limits](docs/TEST_REPORT.md). Offline tests exercise the interfaces and safeguards with synthetic model replies; they are not live model experiments or proof of the historical paper results.
 
 ## Repository map
 
@@ -254,11 +240,6 @@ multihop-rag-benchmark/
 
 [**Supplementary Material (PDF)**](Supplementary%20Material.pdf) provides worked multi-hop examples, dataset statistics, PKS calibration and robustness checks, full prompts and model settings, human validation, statistical analyses, live-retrieval validation, chain completion, and cross-domain replication. It also documents supplementary experiments that are separate from the core dataset-generation and evaluation code.
 
-## Citation
-
-If you use this benchmark or its code in research, please cite the accompanying manuscript:
-
-**Syed Mahbubul Huq, Chris Child, Tillman Weyde, and Pranava Madhyastha.** *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators.*
 
 When reusing source gameplay data or simulation code, also follow the citation and licensing terms of [QANTA Diplomacy](https://sites.google.com/view/qanta/projects/diplomacy) and [GoodStartLabs AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy).
 
