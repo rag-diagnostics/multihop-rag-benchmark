@@ -19,7 +19,7 @@ def main():
     p.add_argument("--length-policy", choices=("none", "legacy_word_min", "tokenizer_min"), required=True)
     p.add_argument("--audit-policy", choices=("strict", "report"), default="strict")
     p.add_argument("--judge-model", required=True)
-    p.add_argument("--judge-policy", choices=("legacy_short", "semantic_all"), required=True)
+    p.add_argument("--judge-policy", choices=("semantic_all",), default="semantic_all")
     p.add_argument("--judge-max-tokens", type=int, default=2048)
     p.add_argument("--match-policy", choices=("legacy", "normalized"), default="legacy")
     p.add_argument("--sample-chains", type=int); p.add_argument("--max-tokens", type=int)

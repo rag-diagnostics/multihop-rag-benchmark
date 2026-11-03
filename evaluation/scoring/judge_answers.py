@@ -1,4 +1,4 @@
-"""Explicit original-short-answer or all-nonexact judging, with safe resume identity."""
+"""Semantic equivalence judging for all non-exact answers, with safe resume identity."""
 from __future__ import annotations
 import argparse
 import json
@@ -43,7 +43,7 @@ def _clean(text):
 
 def classify(row, judge=google_judge, judge_model="gemini-2.5-pro", retries=3,
              policy="semantic_all", judge_max_tokens=2048):
-    if policy not in {"legacy_short", "semantic_all"}: raise ValueError("Invalid judge policy")
+    if policy != "semantic_all": raise ValueError("Only semantic_all judging is supported")
     result = dict(row)
     result.update(judge_model=judge_model, judge_policy=policy, judge_max_tokens=judge_max_tokens,
                   judgment_fingerprint=judgment_signature(row, judge_model, policy, judge_max_tokens),
@@ -56,13 +56,8 @@ def classify(row, judge=google_judge, judge_model="gemini-2.5-pro", retries=3,
     generated = str(row.get("generated_answer") or "")
     gold = str(row.get("golden_answer") or "")
     if not gold.strip(): raise ValueError("Cannot judge without a gold answer")
-    wc = len(re.findall(r"\b\w+\b", generated, re.UNICODE))
     if exact_match(generated, gold, policy=row.get("match_policy", "normalized")):
         result.update(is_correct=True, judge_verdict="CORRECT", normalized_ans=_clean(generated), judgment_status="exact_match")
-        return result
-    if policy == "legacy_short" and wc <= 3:
-        result.update(is_correct=False, judge_verdict="INCORRECT" if generated.strip() else "NO_ANSWER",
-                      normalized_ans=_clean(generated) or "HALLUCINATED", judgment_status="legacy_short")
         return result
     prediction = str(row.get("generated_text") or generated) if row.get("mode", "main") == "main" else generated
     for attempt in range(retries):
@@ -101,7 +96,7 @@ def judge_file(input_path, output_path, *, judge=google_judge, judge_model="gemi
     def needs(row, existing):
         prior = existing.entries.get(row["request_id"], {})
         return not (prior.get("judgment_fingerprint") == judgment_signature(row, judge_model, policy, judge_max_tokens)
-                    and prior.get("judgment_status") in {"exact_match", "judge", "legacy_short"})
+                    and prior.get("judgment_status") in {"exact_match", "judge"})
     existing = JsonlIndex(output_path)
     # No entire context corpus in memory: only offsets are indexed.
     for row in inputs.rows():
@@ -132,7 +127,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--input", type=Path, required=True); p.add_argument("--output", type=Path, required=True)
     p.add_argument("--judge-model", required=True, help="Use the exact judge model for your experiment")
-    p.add_argument("--judge-policy", choices=("legacy_short", "semantic_all"), required=True)
+    p.add_argument("--judge-policy", choices=("semantic_all",), default="semantic_all")
     p.add_argument("--judge-max-tokens", type=int, default=2048)
     p.add_argument("--workers", type=int, default=1); p.add_argument("--retries", type=int, default=3)
     p.add_argument("--dry-run", action="store_true")

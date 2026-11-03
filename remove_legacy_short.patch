@@ -1,0 +1,54 @@
+diff --git a/evaluation/README.md b/evaluation/README.md
+--- a/evaluation/README.md
++++ b/evaluation/README.md
+@@ -22,3 +22,3 @@
+ | `--length-policy` | `none` preserves text, `legacy_word_min` matches distractor lengths , `tokenizer_min` uses a tokenizer. Gold documents are not truncated. |
+-| `--judge-policy` | `legacy_short` marks short non-exact answers incorrect without judging, `semantic_all` judges every non-exact answer. |
++| `--judge-policy` | `semantic_all` evaluates every non-exact answer for semantic equivalence. |
+ | `--match-policy` | `legacy` uses the original exact-match rules (default). |
+@@ -32,3 +32,3 @@
+   --input runs/test/generations.jsonl --output runs/test/judged.jsonl \
+-  --judge-model gemini-2.5-pro --judge-policy legacy_short
++  --judge-model gemini-2.5-pro --judge-policy semantic_all
+ 
+diff --git a/evaluation/evaluate_dataset.py b/evaluation/evaluate_dataset.py
+--- a/evaluation/evaluate_dataset.py
++++ b/evaluation/evaluate_dataset.py
+@@ -20,3 +20,3 @@
+     p.add_argument("--judge-model", required=True)
+-    p.add_argument("--judge-policy", choices=("legacy_short", "semantic_all"), required=True)
++    p.add_argument("--judge-policy", choices=("semantic_all",), default="semantic_all")
+     p.add_argument("--judge-max-tokens", type=int, default=2048)
+diff --git a/evaluation/scoring/judge_answers.py b/evaluation/scoring/judge_answers.py
+--- a/evaluation/scoring/judge_answers.py
++++ b/evaluation/scoring/judge_answers.py
+@@ -1,3 +1,3 @@
+-"""Explicit original-short-answer or all-nonexact judging, with safe resume identity."""
++"""Semantic equivalence judging for all non-exact answers, with safe resume identity."""
+ from __future__ import annotations
+ import argparse
+@@ -40,3 +40,3 @@
+              policy="semantic_all", judge_max_tokens=2048):
+-    if policy not in {"legacy_short", "semantic_all"}: raise ValueError("Invalid judge policy")
++    if policy != "semantic_all": raise ValueError("Only semantic_all judging is supported")
+     result = dict(row)
+@@ -54,9 +54,4 @@
+-    wc = len(re.findall(r"\b\w+\b", generated, re.UNICODE))
+     if exact_match(generated, gold, policy=row.get("match_policy", "normalized")):
+         result.update(is_correct=True, judge_verdict="CORRECT", normalized_ans=_clean(generated), judgment_status="exact_match")
+         return result
+-    if policy == "legacy_short" and wc <= 3:
+-        result.update(is_correct=False, judge_verdict="INCORRECT" if generated.strip() else "NO_ANSWER",
+-                      normalized_ans=_clean(generated) or "HALLUCINATED", judgment_status="legacy_short")
+-        return result
+     prediction = str(row.get("generated_text") or generated) if row.get("mode", "main") == "main" else generated
+@@ -97,3 +92,3 @@
+         return not (prior.get("judgment_fingerprint") == judgment_signature(row, judge_model, policy, judge_max_tokens)
+-                    and prior.get("judgment_status") in {"exact_match", "judge", "legacy_short"})
++                    and prior.get("judgment_status") in {"exact_match", "judge"})
+     existing = JsonlIndex(output_path)
+@@ -128,3 +123,3 @@
+     p.add_argument("--judge-model", required=True, help="Use the exact judge model for your experiment")
+-    p.add_argument("--judge-policy", choices=("legacy_short", "semantic_all"), required=True)
++    p.add_argument("--judge-policy", choices=("semantic_all",), default="semantic_all")
+     p.add_argument("--judge-max-tokens", type=int, default=2048)

@@ -25,7 +25,7 @@ Remove `--dry-run` for real model calls. For the full benchmark, also remove `--
 | --- | --- |
 | `--distractor-family` | `relevant` or `irrelevant` selects one pool from the released JSON, `random` is for newly constructed data. |
 | `--length-policy` | `none` preserves text, `legacy_word_min` matches distractor lengths , `tokenizer_min` uses a tokenizer. Gold documents are not truncated. |
-| `--judge-policy` | `legacy_short` marks short non-exact answers incorrect without judging, `semantic_all` judges every non-exact answer. |
+| `--judge-policy` | `semantic_all` evaluates every non-exact answer for semantic equivalence. |
 | `--match-policy` | `legacy` uses the original exact-match rules (default). |
 | `--max-tokens` | Generation cap. |
 | `--audit-policy` | `strict` stops on dataset-quality warnings. |
@@ -39,7 +39,7 @@ Remove `--dry-run` for real model calls. For the full benchmark, also remove `--
 ```bash
 python -m evaluation.scoring.judge_answers \
   --input runs/test/generations.jsonl --output runs/test/judged.jsonl \
-  --judge-model gemini-2.5-pro --judge-policy legacy_short
+  --judge-model gemini-2.5-pro --judge-policy semantic_all
 
 python -m evaluation.scoring.aggregate \
   --input runs/test/judged.jsonl --output-dir runs/test/summary \
