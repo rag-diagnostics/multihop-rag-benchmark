@@ -156,7 +156,6 @@ python -m evaluation.dataset --input data/benchmark_528.json \
   --report runs/dataset_audit.json
 ```
 
-A browser download is also supported: save the complete JSON at that path, then run `python -m tools.download_dataset --output data/benchmark_528.json --verify-only`. A Drive preview, access-denied HTML, or an incomplete pasted excerpt is not a valid dataset. The downloader records the actual SHA-256; it does not invent a publisher checksum.
 
 ### 2. Choose the model and experimental settings
 
