@@ -63,9 +63,8 @@ Save the downloaded file as `data/benchmark_528.json`, or use the downloader bel
   <img src="assets/readme/framework.svg" alt="Diagram showing source collection, narrative transformation, entity remapping, PKS filtering, controlled multi-hop composition, and generator evaluation." width="100%" />
 </p>
 
-The source samples are turned into historical-style narratives; named entities and temporal markers are remapped to make surface-level memorisation less useful. Short, span-supported questions are expanded into multi-hop chains by replacing bridge entities with descriptions that must be resolved from additional documents. A calibrated **Parametric Knowledge Score (PKS)** screens out instances with unusually strong question-answer associations under a reference model.
+The source samples are turned into historical-style narratives, named entities and temporal markers are remapped to make surface-level memorisation less useful. Short, span-supported questions are expanded into multi-hop chains by replacing bridge entities with descriptions that must be resolved from additional documents. 
 
-Finally, each retained question is placed inside a **fixed 11-document context**, with controlled gold-evidence placement and screened distractors, for generator-only evaluation.
 
 <details>
 <summary><strong>Learn more: source generation and PKS filtering</strong></summary>
@@ -75,9 +74,6 @@ Finally, each retained question is placed inside a **fixed 11-document context**
 - **300 LLM-vs-LLM Diplomacy game samples**, generated using the [GoodStartLabs AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy) environment.
 - **300 QANTA Diplomacy corpus samples**, based on the [Diplomacy dataset](https://sites.google.com/view/qanta/projects/diplomacy) (Peskov et al., 2020).
 
-Gameplay conversations are transformed into historical-style narratives, followed by stochastic entity and temporal remapping, short question-answer generation, answer-span validation, distractor screening, and recursive multi-hop construction. The `data_generation/source_collection/webdiplomacy/` scripts are supplementary collection utilities; the benchmark's QANTA-source partition is drawn from QANTA Diplomacy, not from the WebDiplomacy scraper.
-
-See [data generation](data_generation/README.md) for input formats, dependencies, and stage-specific commands.
 
 ### Parametric knowledge filtering
 
@@ -88,10 +84,6 @@ $$
 $$
 
 Here, each $L$ is a summed token-level negative log-likelihood under a fixed reference model. The score is calibrated using three distributions: **Known & Plausible**, **Unknown & Plausible**, and **Unknown & Implausible**. The nearest class is determined by standardised distance; the **Known & Plausible** category is excluded.
-
-In the paper's main run, 600 candidates were filtered to **528 retained instances**, with Qwen2.5-7B-Instruct as the primary PKS reference model. This is a **screening heuristic for parametric answerability**, not a claim that training-data membership can be detected.
-
-Three calibration QA JSON files are required to calculate the reference distributions. See [parametric filtering](parametric_filtering/README.md).
 
 </details>
 
