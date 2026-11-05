@@ -184,12 +184,11 @@ python -m evaluation.dataset --input data/benchmark_528.json \
 python -m evaluation.evaluate_dataset \
   --dataset data/benchmark_528.json --expected-chains 528 \
   --models evaluation/model_config.example.json \
-  --only-model gemini-flash-lite \
-  --output-dir runs/sample_irrelevant \
-  --distractor-family irrelevant --length-policy legacy_word_min \
-  --judge-model gemini-2.5-pro --judge-policy semantic_all \
-  --max-tokens 50 --sample-chains 2 --seed 42 \
-  --dry-run
+  --only-model gemini-2.5-flash \
+  --judge-model gemini-2.5-flash --judge-policy semantic_all \
+  --judge-max-tokens 4096 \
+  --max-tokens 50 --sample-chains 5 --configuration A2 --seed 42 \
+  --audit-policy report --dry-run
 ```
 
 Remove `--dry-run` to execute generation, judging, and aggregation. For a full run, also remove `--sample-chains 2` and use a **new** output directory such as `runs/full_irrelevant`.

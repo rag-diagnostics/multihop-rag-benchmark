@@ -1,12 +1,17 @@
 {
   "models": {
-    "gemini-flash-lite": {
+    "gemini-2.5-flash": {
       "provider": "google_genai",
-      "model_id": "gemini-2.5-flash-lite",
+      "model_id": "gemini-2.5-flash",
       "api_key_env": "GEMINI_API_KEY",
       "temperature": 0.0,
       "top_p": 1.0,
-      "max_tokens": 50
+      "max_tokens": 50,
+      "generation_config": {
+        "thinkingConfig": {
+          "thinkingBudget": 0
+        }
+      }
     },
     "qwen-api": {
       "provider": "openai_compatible",

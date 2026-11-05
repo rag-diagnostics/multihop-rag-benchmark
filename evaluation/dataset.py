@@ -63,13 +63,16 @@ def check_chain(entry, family):
 
 
 def audit_dataset(path, family, expected_chains=None):
-    count = 0; issues = []; invalid = []; duplicates = []; seen = set(); max_chars = 0
+    count = 0; issues = []; invalid = []; seen_chains = set(); max_chars = 0
     for index, entry in enumerate(iter_json_array(path)):
         count += 1
-        q = entry.get("original_question")
-        if isinstance(q, str):
-            if q in seen: duplicates.append(index)
-            seen.add(q)
+        chain_key = json.dumps(entry, sort_keys=True, ensure_ascii=False)
+        if chain_key in seen_chains:
+            invalid.append({
+                "source_entry_index": index,
+                "reason": "identical chain record"
+            })
+        seen_chains.add(chain_key)
         try:
             flags = check_chain(entry, family)
             for d in range(1, 5):
@@ -81,7 +84,7 @@ def audit_dataset(path, family, expected_chains=None):
             invalid.append({"source_entry_index": index, "reason": str(e)})
     if count == 0: invalid.append({"reason": "empty dataset"})
     if expected_chains is not None and count != expected_chains: invalid.append({"reason": f"Expected {expected_chains} chains; found {count}"})
-    if duplicates: invalid.append({"reason": "duplicate original_question", "indices": duplicates})
+    
     return {"sha256": file_sha256(path), "chains": count, "distractor_family": family,
             "schema_valid": not invalid, "invalid_records": invalid,
             "chains_needing_review": len(issues), "quality_issues": issues,

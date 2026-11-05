@@ -10,9 +10,11 @@ Download the [benchmark JSON](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xF
 python -m evaluation.evaluate_dataset \
   --dataset data/benchmark_528.json --expected-chains 528 \
   --models evaluation/model_config.example.json \
-  --only-model gemini-flash-lite --output-dir runs/test \
+  --only-model gemini-2.5-flash \
+  --output-dir runs/test \
   --distractor-family irrelevant --length-policy legacy_word_min \
-  --judge-model gemini-2.5-pro --judge-policy semantic_all \
+  --judge-model gemini-2.5-flash --judge-policy semantic_all \
+  --judge-max-tokens 4096 \
   --max-tokens 50 --sample-chains 2 --seed 42 \
   --audit-policy report --dry-run
 ```
@@ -27,7 +29,8 @@ Remove `--dry-run` for real model calls. For the full benchmark, also remove `--
 | `--length-policy` | `none` preserves text, `legacy_word_min` matches distractor lengths , `tokenizer_min` uses a tokenizer. Gold documents are not truncated. |
 | `--judge-policy` | `semantic_all` evaluates every non-exact answer for semantic equivalence. |
 | `--match-policy` | `legacy` uses the original exact-match rules (default). |
-| `--max-tokens` | Generation cap. |
+| `--max-tokens` | Maximum output tokens for answer generation. |
+| `--judge-max-tokens` | Maximum output tokens for the semantic judge (4096 recommended for Gemini 2.5 Flash). |
 | `--audit-policy` | `strict` stops on dataset-quality warnings. |
 
 
@@ -39,7 +42,7 @@ Remove `--dry-run` for real model calls. For the full benchmark, also remove `--
 ```bash
 python -m evaluation.scoring.judge_answers \
   --input runs/test/generations.jsonl --output runs/test/judged.jsonl \
-  --judge-model gemini-2.5-pro --judge-policy semantic_all
+  --judge-model gemini-2.5-flash --judge-policy semantic_all
 
 python -m evaluation.scoring.aggregate \
   --input runs/test/judged.jsonl --output-dir runs/test/summary \
