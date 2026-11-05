@@ -185,6 +185,8 @@ python -m evaluation.evaluate_dataset \
   --dataset data/benchmark_528.json --expected-chains 528 \
   --models evaluation/model_config.example.json \
   --only-model gemini-2.5-flash \
+  --output-dir runs/test5 \
+  --distractor-family irrelevant --length-policy legacy_word_min \
   --judge-model gemini-2.5-flash --judge-policy semantic_all \
   --judge-max-tokens 4096 \
   --max-tokens 50 --sample-chains 5 --configuration A2 --seed 42 \
