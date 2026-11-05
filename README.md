@@ -27,7 +27,7 @@
 
 ## Overview
 
-This repository provides the dataset-construction, parametric knowledge filtering, and generator-evaluation code associated with *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*. The benchmark tests whether language models can combine evidence across documents when the retrieved context is fixed.
+This repository provides the dataset construction, parametric knowledge filtering, and generator evaluation code associated with *A Framework for Diagnosing Where Multi-Hop Reasoning Breaks in RAG Generators*. The benchmark tests whether language models can combine evidence across documents when the retrieved context is fixed.
 
 
 
@@ -35,27 +35,27 @@ This repository provides the dataset-construction, parametric knowledge filterin
 
 | Property | Design |
 | :-- | :-- |
-| Source material | 600 Diplomacy-derived source samples: 300 LLM-vs-LLM game samples and 300 from the QANTA Diplomacy corpus |
-| Retained after PKS filtering | **528 question chains**, each with 1- through 4-hop versions |
+| Source material | 600 Diplomacy derived source samples: 300 LLM vs LLM game samples and 300 from the QANTA Diplomacy corpus |
+| Retained after PKS filtering | **528 question chains**, each with 1  through 4 hop versions |
 | Reasoning complexity | 1, 2, 3, and 4 hops |
 | Context budget |  **11 documents** per question |
-| Evidence / distractors | 1-4 gold documents plus 10-7 screened distractors |
-| Single-hop conditions | A1 (first), A2 (middle), A3 (last) |
-| Multi-hop conditions | B1 (canonical), B2 (reversed), B3 (randomised) |
-| Expected answers | Short, document-grounded answers of 1-3 words |
+| Evidence / distractors | 1 to 4 gold documents plus 10 to 7 screened distractors |
+| Single hop conditions | A1 (first), A2 (middle), A3 (last) |
+| Multi hop conditions | B1 (canonical), B2 (reversed), B3 (randomised) |
+| Expected answers | Short, document grounded answers of 1 to 3 words |
 | Scoring | Deterministic generation, exact match, semantic equivalence, and diagnostic metrics |
 
 
 ### 📦 Download the Benchmark Dataset
 
-🤗 **[Download the 528-Instance Benchmark on Hugging Face](https://huggingface.co/datasets/syedhuq/multihop-rag-benchmark)** · 🔗 **[Dataset DOI: 10.57967/hf/11392](https://doi.org/10.57967/hf/11392)** · ☁️ [Google Drive Mirror](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing)
+🤗 **[Download the 528 Instance Benchmark on Hugging Face](https://huggingface.co/datasets/syedhuq/multihop-rag-benchmark)** · 🔗 **[Dataset DOI: 10.57967/hf/11392](https://doi.org/10.57967/hf/11392)** · ☁️ [Google Drive Mirror](https://drive.google.com/file/d/1GmHj2K5SCaV0-a8xFjaj9UprHv6hbmXa/view?usp=sharing)
 
-The publicly released benchmark contains **528 PKS-filtered instances**, covering 1 to 4 reasoning hops, gold evidence, distractor documents, and reasoning decompositions. Download the JSON and follow the [Quick Start](#quick-start) to generate answers and evaluate models directly, without regenerating the dataset or rerunning PKS.
+The publicly released benchmark contains **528 PKS filtered instances**, covering 1 to 4 reasoning hops, gold evidence, distractor documents, and reasoning decompositions. Download the JSON and follow the [Quick Start](#quick-start) to generate answers and evaluate models directly, without regenerating the dataset or rerunning PKS.
 
 Save the downloaded file as `data/benchmark_528.json`.
 
 
-## 🔍 Worked Example: Where Does Four-Hop Reasoning Break?
+## 🔍 Worked Example: Where Does Four Hop Reasoning Break?
 
 Consider a question that becomes progressively harder as entities are replaced by descriptive clues. All four versions ask which country proposed coordination to avoid early conflicts.
 
@@ -74,7 +74,7 @@ Consider a question that becomes progressively harder as entities are replaced b
 | Apertus-8B / Granite-8B | Gabon | Stops at step 3 |
 | Nemotron-9B | Mongolia | Stops at step 1 |
 
-This example illustrates how the framework identifies **which intermediate reasoning step a model may have failed to complete**, rather than measuring final-answer accuracy alone.
+This example illustrates how the framework identifies **which intermediate reasoning step a model may have failed to complete**, rather than measuring final answer accuracy alone.
 
 📖 [Full questions, evidence and analysis in Supplementary Material](Supplementary%20Material.pdf)
 
@@ -84,7 +84,7 @@ This example illustrates how the framework identifies **which intermediate reaso
   <img src="assets/readme/framework.svg" alt="Diagram showing source collection, narrative transformation, entity remapping, PKS filtering, controlled multi-hop composition, and generator evaluation." width="100%" />
 </p>
 
-The source samples are turned into historical-style narratives, named entities and temporal markers are remapped to make surface-level memorisation less useful. Short, span-supported questions are expanded into multi-hop chains by replacing bridge entities with descriptions that must be resolved from additional documents. 
+The source samples are turned into historical style narratives, named entities and temporal markers are remapped to make surface level memorisation less useful. Short, span supported questions are expanded into multi hop chains by replacing bridge entities with descriptions that must be resolved from additional documents. 
 
 
 <details>
@@ -92,19 +92,19 @@ The source samples are turned into historical-style narratives, named entities a
 
 ### Source material and transformation
 
-- **300 LLM-vs-LLM Diplomacy game samples**, generated using the [GoodStartLabs AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy) environment.
+- **300 LLM vs LLM Diplomacy game samples**, generated using the [GoodStartLabs AI_Diplomacy](https://github.com/GoodStartLabs/AI_Diplomacy) environment.
 - **300 QANTA Diplomacy corpus samples**, based on the [Diplomacy dataset](https://sites.google.com/view/qanta/projects/diplomacy) (Peskov et al., 2020).
 
 
 ### Parametric knowledge filtering
 
-The framework computes a no-context, PMI-inspired association score:
+The framework computes a no context, PMI inspired association score:
 
 $$
 \mathrm{PKS}(q,a) = L_q + L_a - L_{aq}
 $$
 
-Here, each $L$ is a summed token-level negative log-likelihood under a fixed reference model. The score is calibrated using three distributions: **Known & Plausible**, **Unknown & Plausible**, and **Unknown & Implausible**. The nearest class is determined by standardised distance; the **Known & Plausible** category is excluded.
+Here, each $L$ is a summed token level negative log likelihood under a fixed reference model. The score is calibrated using three distributions: **Known & Plausible**, **Unknown & Plausible**, and **Unknown & Implausible**. The nearest class is determined by standardised distance; the **Known & Plausible** category is excluded.
 
 </details>
 
@@ -140,12 +140,12 @@ The experiments test **12 models** under a constant document budget.
 
 ## Evaluation and diagnostic metrics
 
-Models answer from the supplied documents in **1-3 words**. 
+Models answer from the supplied documents in **1 to 3 words**. 
 
 | Metric | What it measures |
 | :-- | :-- |
 | **Accuracy (EM + judge)** | Gold-answer correctness after deterministic and semantic checks |
-| **CMD** | Compliance with the 1-3 word response constraint |
+| **CMD** | Compliance with the 1 to 3 word response constraint |
 | **CONFAB** | Off-task, unusable, or refusal/non-answer outputs |
 | **EAR** | Correct attribution of gold supporting evidence in a separately prompted citation evaluation |
 | **CCS** | Correctness at every depth of the same reasoning chain, including shallower hops |
