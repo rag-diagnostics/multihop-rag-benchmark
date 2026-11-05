@@ -42,7 +42,8 @@ Remove `--dry-run` for real model calls. For the full benchmark, also remove `--
 ```bash
 python -m evaluation.scoring.judge_answers \
   --input runs/test/generations.jsonl --output runs/test/judged.jsonl \
-  --judge-model gemini-2.5-flash --judge-policy semantic_all
+  --judge-model gemini-2.5-flash --judge-policy semantic_all \
+  --judge-max-tokens 4096
 
 python -m evaluation.scoring.aggregate \
   --input runs/test/judged.jsonl --output-dir runs/test/summary \
