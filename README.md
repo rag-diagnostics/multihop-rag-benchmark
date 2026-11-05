@@ -193,7 +193,7 @@ python -m evaluation.evaluate_dataset \
   --audit-policy report --dry-run
 ```
 
-Remove `--dry-run` to execute generation, judging, and aggregation. For a full run, also remove `--sample-chains 2` and use a **new** output directory such as `runs/full_irrelevant`.
+Remove --dry-run to execute generation, judging, and aggregation. For the full benchmark, remove both --sample-chains 5 and --configuration A2, and use a new output directory such as runs/full_irrelevant.
 See the [evaluation guide](evaluation/README.md) for settings, output fields, and separate stage commands.
 
 ### 3. Inspect results
